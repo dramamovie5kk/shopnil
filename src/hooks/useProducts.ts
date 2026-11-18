@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/integrations/cloudflare/client";
 import { Product, Category } from "@/types";
 
-export const useProducts = (options?: { featured?: boolean; limit?: number; categorySlug?: string; compact?: boolean }) => {
+export const useProducts = (options?: { featured?: boolean; limit?: number; categorySlug?: string; compact?: boolean }, enabled = true) => {
   return useQuery({
     queryKey: ["products", options],
+    enabled,
     staleTime: 3 * 60 * 1000,
     queryFn: async () => {
       let query = api
@@ -16,15 +17,15 @@ export const useProducts = (options?: { featured?: boolean; limit?: number; cate
       }
 
       if (options?.categorySlug) {
-        const { data: category } = await api
+        const { data: category, error: categoryError } = await api
           .from("categories")
           .select("id")
           .eq("slug", options.categorySlug)
-          .single();
+          .maybeSingle();
 
-        if (category) {
-          query = query.eq("category_id", category.id);
-        }
+        if (categoryError) throw categoryError;
+        if (!category) return [];
+        query = query.eq("category_id", category.id);
       }
 
       if (options?.limit) {

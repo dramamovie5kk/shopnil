@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Filter, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,14 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/home/ProductCard";
 import { useProducts, useCategories } from "@/hooks/useProducts";
+import type { Category } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const categorySlug = searchParams.get("category") || undefined;
   const searchQuery = searchParams.get("search") || "";
-  const { data: products = [], isLoading } = useProducts({ categorySlug, compact: true });
+  const { data: products = [], isLoading, isError, refetch } = useProducts({ categorySlug, compact: true });
   const { data: categories = [] } = useCategories();
   const { t, language } = useLanguage();
 
@@ -26,28 +27,15 @@ const Products = () => {
     { id: "1000+", label: t('products.price_1000_plus'), min: 1000, max: Infinity },
   ];
 
-  const [filteredProducts, setFilteredProducts] = useState(products);
   const [priceRange, setPriceRange] = useState("all");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  useEffect(() => {
-    let result = [...products];
-    if (searchQuery) {
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.name_bn.includes(searchQuery)
-      );
-    }
-    const selectedRange = PRICE_RANGES.find(r => r.id === priceRange);
-    if (selectedRange && priceRange !== "all") {
-      result = result.filter(
-        (p) => p.price >= selectedRange.min && p.price < selectedRange.max
-      );
-    }
-    result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    setFilteredProducts(result);
-  }, [products, searchQuery, priceRange, language]);
+  const term = searchQuery.trim().toLowerCase();
+  const range = PRICE_RANGES.find(item => item.id === priceRange);
+  const filteredProducts = products.filter(product =>
+    (!term || product.name?.toLowerCase().includes(term) || product.name_bn?.toLowerCase().includes(term)) &&
+    (!range || priceRange === "all" || (product.price >= range.min && product.price < range.max))
+  );
 
   const handleCategoryChange = (slug: string) => {
     if (slug === "all") {
@@ -70,9 +58,9 @@ const Products = () => {
   const selectedCategory = categories.find((c) => c.slug === categorySlug);
   const hasActiveFilters = categorySlug || priceRange !== "all" || searchQuery;
 
-  const getCatDisplayName = (cat: any) => language === 'en' ? (cat.name || cat.name_bn) : cat.name_bn;
+  const getCatDisplayName = (cat: Category) => language === 'en' ? (cat.name || cat.name_bn) : cat.name_bn;
 
-  const FilterSidebar = ({ className = "" }: { className?: string }) => (
+  const renderFilterSidebar = (className = "") => (
     <div className={`bg-card rounded-lg border border-border p-4 ${className}`}>
       <h3 className="font-bold text-foreground mb-4 text-lg">{t('products.filter')}</h3>
       
@@ -145,7 +133,7 @@ const Products = () => {
             <div className="flex gap-6">
               <aside className="hidden lg:block w-64 shrink-0">
                 <div className="sticky top-4">
-                  <FilterSidebar />
+                  {renderFilterSidebar()}
                 </div>
               </aside>
 
@@ -168,7 +156,7 @@ const Products = () => {
                         <SheetTitle>{t('products.filter')}</SheetTitle>
                       </SheetHeader>
                       <div className="p-4">
-                        <FilterSidebar className="border-0 p-0" />
+                        {renderFilterSidebar("border-0 p-0")}
                       </div>
                     </SheetContent>
                   </Sheet>
@@ -209,6 +197,11 @@ const Products = () => {
                 {isLoading ? (
                   <div className="flex justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : isError ? (
+                  <div role="alert" className="text-center py-12 space-y-3">
+                    <p>{language === "en" ? "Could not load products." : "প্রোডাক্ট লোড করতে সমস্যা হয়েছে।"}</p>
+                    <Button variant="outline" onClick={() => refetch()}>{language === "en" ? "Try again" : "আবার চেষ্টা করুন"}</Button>
                   </div>
                 ) : filteredProducts.length === 0 ? (
                   <div className="text-center py-12 bg-card rounded-lg border border-border">

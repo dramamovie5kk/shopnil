@@ -92,7 +92,7 @@ const HeroSlider = ({ isFullWidth = false, height, responsiveBanner = false }: H
                     <img
                       src={imageVariant(slide.url,1600)}
                       srcSet={imageSrcSet(slide.url)} sizes="100vw" decoding="async"
-                      fetchPriority={index === 0 ? "high" : "low"}
+                      {...{ fetchpriority: index === 0 ? "high" : "low" }}
                       alt={`Slide ${index + 1}`}
                       loading={index === 0 ? "eager" : "lazy"}
                       className={`w-full object-cover ${responsiveBanner ? "banner-responsive-height" : "slider-responsive-height"}`}
@@ -102,7 +102,7 @@ const HeroSlider = ({ isFullWidth = false, height, responsiveBanner = false }: H
                 <img
                   src={imageVariant(slide.url,1600)}
                       srcSet={imageSrcSet(slide.url)} sizes="100vw" decoding="async"
-                      fetchPriority={index === 0 ? "high" : "low"}
+                      {...{ fetchpriority: index === 0 ? "high" : "low" }}
                   alt={`Slide ${index + 1}`}
                   loading={index === 0 ? "eager" : "lazy"}
                   className={`w-full object-cover ${responsiveBanner ? "banner-responsive-height" : "slider-responsive-height"}`}

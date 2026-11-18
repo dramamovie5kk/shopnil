@@ -15,7 +15,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function WebsiteHome() {
   const { getSetting } = useSiteSettings();
-  const { data: products = [], isLoading, isError, refetch } = useProducts({ compact: true, limit: homeNumber(getSetting('home_products_limit','12'),1,60,12) });
+  const productsEnabled = homeSectionEnabled(getSetting("home_products_enabled", "true"));
+  const { data: products = [], isLoading, isError, refetch } = useProducts({ compact: true, limit: homeNumber(getSetting('home_products_limit','12'),1,60,12) }, productsEnabled);
   const { language, t } = useLanguage();
   const title = language === 'en' ? t('products.all_products') : getSetting('home_products_title', 'আমাদের প্রোডাক্ট');
   return <div className="min-h-screen flex flex-col">
@@ -23,7 +24,7 @@ export default function WebsiteHome() {
     <HomeBanner />
     <main className="flex-1 max-w-[1240px] mx-auto w-full px-1.5 md:px-4 pb-20 lg:pb-8">
       <CategoryGrid />
-      {homeSectionEnabled(getSetting('home_products_enabled','true')) && <section style={{backgroundColor:homeColor(getSetting('home_products_bg_color'))}} className="py-8 w-[calc(100vw-40px)] left-1/2 -translate-x-1/2 relative" aria-labelledby="home-products-heading">
+      {productsEnabled && <section style={{backgroundColor:homeColor(getSetting('home_products_bg_color'))}} className="py-8 w-[calc(100vw-40px)] left-1/2 -translate-x-1/2 relative" aria-labelledby="home-products-heading">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <h1 style={{color:homeColor(getSetting('home_products_title_color'))}} id="home-products-heading" className="text-2xl md:text-3xl font-bold">{title}</h1>
           <Button asChild variant="outline" style={{backgroundColor:homeColor(getSetting('home_products_button_bg_color')),color:homeColor(getSetting('home_products_button_text_color'))}}><Link to="/shop">{language === 'en' ? 'Visit shop' : getSetting('home_shop_button_text','সব প্রোডাক্ট দেখুন')}<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>

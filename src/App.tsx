@@ -1,10 +1,9 @@
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import AdminGuard from "@/components/admin/AdminGuard";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -16,6 +15,7 @@ import ScrollToTop from "@/components/layout/ScrollToTop";
 import OrderSourceCapture from "@/components/OrderSourceCapture";
 import DynamicTitle from "@/components/DynamicTitle";
 import { lazy as reactLazy, Suspense, type ComponentType } from "react";
+import HomePage from "./pages/HomePage";
 
 // After a new version is published, old page files disappear. If loading one fails,
 // reload once so the browser picks up the latest version instead of a blank screen.
@@ -53,7 +53,6 @@ const AdminPages = lazy(() => import("./pages/admin/AdminPages"));
 const Register = lazy(() => import("./pages/Register"));
 const Login = lazy(() => import("./pages/Login"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const HomePage = lazy(() => import("./pages/HomePage"));
 const SalesPage = lazy(() => import("./pages/SalesPage"));
 const SalesPageOrderSuccess = lazy(() => import("./pages/SalesPageOrderSuccess"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -88,70 +87,71 @@ const queryClient = new QueryClient({defaultOptions:{queries:{
 const App = () => (
   <AppErrorBoundary>
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <CartProvider>
-            <LanguageProvider>
-              <ScrollToTop />
-              <OrderSourceCapture />
-              <DynamicTitle />
-              <CustomCodeInjector />
-              <FBPixelLoader />
-              <TikTokPixelLoader />
-              <Toaster />
-              <Sonner />
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/shop" element={<Products />} />
-                  <Route path="/product/:slug" element={<ProductDetail />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/order-success" element={<OrderSuccess />} />
-                  <Route path="/orders" element={<Orders />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/blog/:slug" element={<BlogDetail />} />
-                  <Route path="/admin/pages" element={<AdminPages />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/lp-order-success" element={<SalesPageOrderSuccess />} />
-                  {/* Sales Landing Pages - No Header/Footer */}
-                  <Route path="/lp/:slug" element={<SalesPage />} />
-                  {/* Admin Routes */}
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/products" element={<AdminProducts />} />
-                  <Route path="/admin/categories" element={<AdminCategories />} />
-                  <Route path="/admin/orders" element={<AdminOrders />} />
-                  <Route path="/admin/blocked" element={<AdminBlocked />} />
-                  <Route path="/admin/abandoned" element={<AdminAbandoned />} />
-                  <Route path="/admin/users" element={<AdminUsers />} />
-                  <Route path="/admin/custom-code" element={<AdminCustomCode />} />
-                  <Route path="/admin/settings" element={<AdminSettings />} />
-                  <Route path="/admin/inventory" element={<AdminInventory />} />
-                  <Route path="/admin/sales-pages" element={<AdminSalesPages />} />
-                  <Route path="/admin/reviews" element={<AdminReviews />} />
-                  <Route path="/admin/spin-settings" element={<AdminSpinSettings />} />
-                  <Route path="/admin/blogs" element={<AdminBlogs />} />
+    <BrowserRouter>
+      <AuthProvider>
+        <CartProvider>
+          <LanguageProvider>
+            <ScrollToTop />
+            <OrderSourceCapture />
+            <DynamicTitle />
+            <CustomCodeInjector />
+            <FBPixelLoader />
+            <TikTokPixelLoader />
+            <Sonner />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/shop" element={<Products />} />
+                <Route path="/product/:slug" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/order-success" element={<OrderSuccess />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/blog/:slug" element={<BlogDetail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/lp-order-success" element={<SalesPageOrderSuccess />} />
+                {/* Sales Landing Pages - No Header/Footer */}
+                <Route path="/lp/:slug" element={<SalesPage />} />
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminGuard><Outlet /></AdminGuard>}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="products" element={<AdminProducts />} />
+                  <Route path="categories" element={<AdminCategories />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="blocked" element={<AdminBlocked />} />
+                  <Route path="abandoned" element={<AdminAbandoned />} />
+                  <Route element={<AdminGuard adminOnly><Outlet /></AdminGuard>}>
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="custom-code" element={<AdminCustomCode />} />
+                  </Route>
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="inventory" element={<AdminInventory />} />
+                  <Route path="sales-pages" element={<AdminSalesPages />} />
+                  <Route path="reviews" element={<AdminReviews />} />
+                  <Route path="spin-settings" element={<AdminSpinSettings />} />
+                  <Route path="blogs" element={<AdminBlogs />} />
+                  <Route path="pages" element={<AdminPages />} />
+                </Route>
 
-                  <Route path="*" element={<NotFound />} />
-                  <Route path="/page/:slug" element={<DynamicPage />} />
-                  <Route path="/:slug" element={<DynamicPage />} />
-                </Routes>
-              </Suspense>
-              <MobileBottomNav />
-              <OptionalSpinWheel />
-            </LanguageProvider>
-          </CartProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+                <Route path="*" element={<NotFound />} />
+                <Route path="/page/:slug" element={<DynamicPage />} />
+                <Route path="/:slug" element={<DynamicPage />} />
+              </Routes>
+            </Suspense>
+            <MobileBottomNav />
+            <OptionalSpinWheel />
+          </LanguageProvider>
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
   </AppErrorBoundary>
 );

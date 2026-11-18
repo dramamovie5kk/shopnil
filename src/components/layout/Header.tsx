@@ -1,11 +1,10 @@
-import { useState, useMemo, useRef } from "react";
+import { lazy, Suspense, useState, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Search, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight,
   Smartphone, Laptop, Headphones, Watch, Camera, Gamepad2, 
   Phone, Mail, LogOut, LayoutDashboard, Heart
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useCategories } from "@/hooks/useProducts";
@@ -14,12 +13,19 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePages } from "@/hooks/usePages";
 
-import CartDrawer from "./CartDrawer";
 import DesktopHeader from "./DesktopHeader";
 import { headerCustomizationCss, parseHeaderCustomization, type HeaderPart } from "@/lib/headerCustomization";
-import SearchPopover from "./SearchPopover";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+
+const CartDrawer = lazy(() => import("./CartDrawer"));
+const SearchPopover = lazy(() => import("./SearchPopover"));
+
+const CartDrawerWhenOpened = ({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) => {
+  const [hasOpened, setHasOpened] = useState(open);
+  if (open && !hasOpened) setHasOpened(true);
+  return hasOpened ? <CartDrawer open={open} onOpenChange={onOpenChange} /> : null;
+};
 
 // Icon mapping for categories
 const categoryIcons: Record<string, React.ElementType> = {
@@ -45,7 +51,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuTriggerRef = useRef<HTMLElement | null>(null);
   const [menuDevice, setMenuDevice] = useState<'desktop' | 'mobile'>('mobile');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean | null>(null);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
@@ -395,15 +401,8 @@ const Header = () => {
         </div>
 
         {/* Mobile Inline Search Bar */}
-        <AnimatePresence>
-          {isMobileSearchOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="lg:hidden bg-background border-b border-border overflow-hidden"
-            >
+        {isMobileSearchOpen && (
+          <div className="lg:hidden bg-background border-b border-border overflow-hidden motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 duration-200">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -444,9 +443,8 @@ const Header = () => {
                   <X className="h-5 w-5" />
                 </button>
               </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
 
         {/* Mobile Menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -543,14 +541,8 @@ const Header = () => {
                               <span>{language === 'en' ? cat.name : cat.name_bn}</span>
                               <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                             </button>
-                            <AnimatePresence>
-                              {isExpanded && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  className="overflow-hidden"
-                                >
+                            {isExpanded && (
+                              <div className="overflow-hidden motion-safe:animate-in motion-safe:fade-in duration-200">
                                   <div className="pl-4 space-y-0.5">
                                     <Link
                                       to={`/products?category=${cat.slug}`}
@@ -570,9 +562,8 @@ const Header = () => {
                                       </Link>
                                     ))}
                                   </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
+                              </div>
+                            )}
                           </>
                         ) : (
                           <Link
@@ -673,10 +664,14 @@ const Header = () => {
       </header>
 
       {/* Search Popover */}
-      <SearchPopover isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      {isSearchOpen !== null && <Suspense fallback={null}>
+        <SearchPopover isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      </Suspense>}
 
       {/* Cart Drawer */}
-      <CartDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
+      <Suspense fallback={null}>
+        <CartDrawerWhenOpened open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
+      </Suspense>
     </>
   );
 };

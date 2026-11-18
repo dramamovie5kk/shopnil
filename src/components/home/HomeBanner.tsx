@@ -56,7 +56,7 @@ export function BannerSlider({ config }: { config: HomeBannerConfig }) {
                 sizes="100vw"
                 decoding="async"
                 alt={`ব্যানার ${i + 1}`}
-                fetchPriority={i === 0 ? "high" : "low"}
+                {...{ fetchpriority: i === 0 ? "high" : "low" }}
                 loading={i === 0 ? "eager" : "lazy"}
                 className="block w-full banner-responsive-height"
                 style={{ borderRadius: config.radius }}
