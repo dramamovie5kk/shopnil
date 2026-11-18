@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "baridhara",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-01-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "baridhara",
+      "database_id": "b5f03b0c-ac54-45ba-964e-5e5c9d2dbbe0",
+      "migrations_dir": "cloudflare/migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "baridhara"
+    }
+  ]
+}

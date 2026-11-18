@@ -1,0 +1,87 @@
+- [x] Create ten distinct Bengali demo sales pages with ten generated product images, linked zero-stock demo products and sample prices; all ten public pages render loaded images and checkout, authenticated admin lists all ten, mobile spot checks have no overflow or runtime errors; no live orders placed and existing pages unchanged.
+- [x] Enable the complete custom-section builder in every template while preserving built-ins/design isolation; 109 tests passed, authenticated creation/reordering/font-size editing and saved public readback verified in Templates 01/02, equal 896px checkout/custom desktop bounds, editor remains open after update, no runtime errors; temporary test page deleted and existing pages unchanged.
+- [x] Add top offer heading/countdown to Template 02 hero 02 with independent editor settings; authenticated live offer copy, ticking, on/off and expired state verified on mobile/desktop without overflow; 25 tests pass and build OK; no saved page changes.
+- [x] Expand checkout from six to ten selectable designs; authenticated picker and all ten live mobile layouts verified, four new desktop layouts checked without overflow, payment switching retains entered customer data, 24 tests pass and build OK; no saved page data changed or live order placed.
+- [x] Unify Template 02 hero 01 image editing and navigation into one slider with two visible images on mobile; six tests and build OK, authenticated editor verified one image list, 178.5px images in a 369px viewport and shared next/previous navigation; no test changes saved.
+- [x] Keep Template 02 hero 01 image sizes unchanged and place previous/next icons on both independent swipeable image carousels; authenticated preview verified 178.5px square frames without added control-row height, previous/next and drag navigation, three existing tests and build OK; no test changes saved.
+- [x] Template 02 hero 01: independent multi-image uploads and carousels in both columns with legacy fallback; three tests passed, authenticated live preview next controls verified independently without saving test changes.
+- [x] Replace Template 02 hero 01 with announcement, brand/logo + order header, heading, video, two-column images, order/call actions and note; matching content/media and per-part controls added; authenticated editor live readback and video render verified without saving test data, desktop/mobile columns and order/call actions checked, 43 tests passed and build OK.
+- [x] Multi-group product variations (color + size etc.) with per-option price/stock: group_name column, admin editor, selectors, cart/checkout/order label; verified on sales page (two groups, summed price 1250) and admin editor, test data restored, 123 tests passed, typecheck OK.
+- [x] Replace original extra-section wizard with reference-style two-column color swatches/reset icons, font sizes and expandable independent part controls; authenticated live heading/text/background updates and reset preserving size verified without saving changes, screenshots inspected, 21 tests passed and build OK.
+- [x] Expose original extra-section appearance controls directly beside existing content without switching layouts; authenticated original-layout heading 31px/color and independent point color verified in live preview without saving test changes; 21 persistence/appearance tests passed, build OK.
+- [x] Add five-step per-part appearance customization across old/new sales section designs, with template/design-isolated saved styles and code-only HTML exclusion; authenticated color/size/input-radius preview, saved public readback, mobile overflow and checkout scroll verified; restored test styles, 113 tests passed, build OK.
+- [x] Add six opt-in designs to each extra section with independent text, color, visibility and component geometry controls; all six verified in authenticated preview, extras 2/3 pickers and accordion checked, saved public readback and mobile layout/order scroll verified, original data restored; 99 tests passed, build OK.
+- [x] Remove settings-save waterfalls across main, banner, footer and spin settings; eight tests passed, authenticated main/banner/footer each use one write (1.33/0.33/0.83 seconds), reload/public readback verified and test copy restored; build OK.
+- [x] Polish homepage product cards and add editable button copy in banner settings, defaulting to বিস্তারিত দেখুন; verified authenticated save/reload and public readback, restored copy, mobile/desktop screenshots, sales-page navigation and five banner tests.
+- [x] Add homepage banner and dedicated settings tab; verified authenticated image upload, saved settings reload and public readback at desktop/mobile without overflow or runtime errors, restored test data; 82 tests passed.
+- [x] Simplify footer spacing and side-by-side menus; add footer settings for copy, links and linked page content; verified authenticated save/public link readback, restored test copy, mobile/desktop screenshots and four link tests passed.
+- [x] Make HTML sections code-only without preset decoration, spacing or visual controls; verified zero padding/full width at 393/1280px, checkout link, authenticated code-only editor and live updates without saving test changes; 44 tests passed.
+- [x] Restore full-document HTML colors, gradients, fonts, images and responsive layouts safely; saved public page verified on desktop/mobile, image loaded and checkout link works; 44 tests passed.
+- [x] Add independent checkout toggles for thana, district and custom information across all templates; six designs and saved public on/off verified, mobile checked, 19 tests passed; order payload covered by tests without placing a live order.
+- [x] Fix custom HTML widget block rendering and safe grid/flex spacing; authenticated live preview verified two columns and 12px gap without saving test changes; 41 tests passed.
+- [x] Add optional repeatable order/call/link buttons and independent element appearance controls to every custom section; authenticated editor preview verified heading styles, call destination and order action without saving test changes.
+- [x] Add editable left/right checkout spacing across sales-page checkout designs; verified zero and independent 12/24px gaps in the live editor, with legacy defaults preserved.
+- [x] Add a standalone Button widget to the custom section picker; authenticated widget creation and multiple-button editing verified; 37 tests passed.
+- [x] Enable heading, body, description and uploaded foreground images on every custom section; 25 tests passed and authenticated image upload/text/video live preview verified without saving page changes.
+- [x] Correct mobile/desktop live preview sizing using isolated viewports; Hero 05 verified at 393/1280px with no horizontal overflow or runtime errors, and live heading changes confirmed.
+- [x] Enforce checkout-only built-in sections for Custom while preserving all ready-made sections/designs in Template 01 and Template 02; 14 tests passed and authenticated editor switching verified without changing saved data.
+- [x] Add five Template 02-only designs each for hero, gallery, features, reviews and contact, with editable text/colors and preserved checkout.
+- [x] Test template isolation and verify editor save/readback and all 25 new layouts on mobile/desktop; verified checkout scroll and restored original saved settings.
+- [x] Support optional sanitized HTML and scoped CSS in every sales-page section's text, preserving plain text and checkout behavior.
+- [x] Test HTML/CSS safety and verify saved editor-to-public rendering; verified formatted badge save/readback and checkout scroll, then restored existing badge copy.
+- [x] Replace Hero 10's announcement/header with a professional first-position countdown and expose existing timer controls; verified saved deadline readback, ticking numbers and mobile/desktop layout, then restored original settings.
+- [x] Center the Hero 10 headline and add a hero image directly under it (from the existing hero image upload), verified on mobile/desktop.
+- [x] Add a call button with the contact number directly below Hero 10's order button, with its own label/color editor fields; verified on mobile/desktop.
+- [x] Remove Hero 10's dead top-bar/header fields (announcement text, brand, header button and their two colors) left over from the countdown redesign.
+- [x] Match Hero 10 to the new course reference screenshots with independent editable fields, retaining saved prices and omitting unprovided endorsements and discounts.
+- [x] Verify Hero 10 saved editor/public readback, mobile/desktop rendering without overflow, checkout scroll and video open/close; restore original page settings after verification.
+- [x] Match Hero 09 to the supplied clothing-combo screenshots and expose matching editor fields.
+- [x] Verify Hero 09 editor save/readback, image layout, order scroll and call destination on mobile/desktop; restore original page settings after verification.
+- [x] Add six selectable feature layouts while leaving unswitched existing pages intact.
+- [x] Match Hero 08 to the supplied screenshots and add matching independent editor fields, retaining existing product images/prices and the no-discount-badge rule.
+- [x] Verify Hero 08 saved copy readback through editor/public page, order scroll, WhatsApp destination and mobile/desktop layout without overflow or runtime errors.
+- [x] Let editors customize feature heading, item icons/text/descriptions, image, and each visual color.
+- [x] Verify all six layouts on mobile and desktop, and preserve existing page rendering paths.
+- [x] Refresh all six feature designs with professional demos and keep their text and colors editable directly beneath the feature controls.
+- [x] Add six distinct professional gallery designs (cards, slider, thumbnail slider, cards with order buttons, editorial showcase, and filmstrip).
+- [x] Show gallery design demos and place editable gallery text and color controls directly beneath the gallery designs.
+- [x] Place design 05 caption over the image bottom, remove arrows, and support swipe navigation with centered thumbnails.
+- [x] Preserve image proportions in gallery design 03 and replace its lower arrows with swipe navigation.
+- [x] Make gallery 01 match the supplied large-image/thumbnail reference, move the former card grid to 02, and remove the former focus slider.
+
+- [x] Add ten distinct opt-in hero designs, editable hero content/colors, and preserve existing sales pages.
+- [x] Verify all ten designs on mobile and desktop and check the editor.
+- [x] হিরো ডিজাইন ৩ নম্বর — স্ক্রিনশটের স্টাইলে দুই কলাম লেআউট (লেখা বামে, বড় ছবি ডানে, নিচে রঙিন বর্ডার) + ডেস্কটপ পলিশ (2026-10-01)
+- [x] হিরো ডিজাইন ৩ রেফারেন্স অনুযায়ী স্বতন্ত্র হেডার, একটি প্রধান ছবি ও নিচে থাম্বনেইল স্লাইডার; হেডার, টিকিট ও চলমান লেখার আলাদা এডিট ফিল্ড।
+- [x] Restrict non-checkout design pickers and rendering to Template 01, preserving checkout across all three templates.
+- [x] Test design availability and verify template switching in the editor.
+- [x] Separate Hero 03 top/header copy and verify its uploaded-image slider with thumbnail and swipe navigation.
+- [x] হিরো ৩-এ "সাশ্রয়ের লেখার নিচের ইমেজ" (offer_image): আপলোড ফিল্ড + হেডলাইনের নিচে রেন্ডার, মোবাইল-ডেস্কটপ যাচাইকৃত (2026-10-01)
+- [x] হিরো ৩: মোবাইলে ব্যাজ ঠিক মাঝে বসানো, ফন্ট বড়, হেডলাইনের দুই লাইনের মাঝে গ্যাপ বড় (ডেস্কটপে ব্যাজ বামে) — যাচাইকৃত (2026-10-12)
+- [x] Add an editable offer timer above Hero 04's image and polish only the screenshot's hero; verified saved deadline counts down through the live editor/public page, restored original deadline, and checked mobile/desktop display.
+- [x] হিরো ০৪: টাইমারের সেটিংস হিরো সেকশনের ভিতরেই এক পচ্ছিদ্র আকারে (শিরোনাম+নোট, অন/অফ, শেষ তারিখ, লেখা), ডিজাইন ০৪ বাছলে দৃশ্যমান ও স্বয়ংক্রিয়ভাবে দৃষ্টিগোচর; তারিখ খালি থাকলে টাইমার লুকানো — এডিটর ও প্ৰত্যক্ষ পাতায় যাচাইকৃত (2026-10-12)
+- [x] হিরো ০৪: অফার টাইমারের লেখা (দিন/ঘণ্টা/মিনিট/সেকেন্ড লেবেল) ও রঙ (পটভূমি, লেখা, ঘর, সংখ্যা, লেবেল, লাইন) বদলানোর সেটিং টাইমার বক্সেই; হেক্স যাচাই + রিসেট বোতাম; টেস্ট ও এন্ড-টু-এন্ড যাচাইকৃত, পরীক্ষার মান মুছে ফেলা (2026-10-12)
+- [x] হিরো ০৪: ছবিটায় চারদিকে ৬ পিক্সেল মার্জিন (মোবাইল) — টাইমারের নিচ, ডান-বাম ও নিচের ফাঁকা ৬px; ডেস্কটপ অপরিবর্তিত — Playwright-এ মাপে যাচাইকৃত (2026-10-12)
+- [x] হিরো ০৪: ছবিতায় ৬ পিক্সেল বর্দার রেডিয়াছ + ছবিতায় নিজস্ব ফ্রেমে ফিট করানো (লেটারবক্স ফাঁক সরিয়েছি, যাতে কোণ গোল দেখায় আৰু ওপরের ফাঁক সত্যিি ৬px হয়) — মোবাইল/ডেস্কটপ যাচাইকৃত (2026-10-12)
+- [x] হিরো ০৪: মোবাইলে হেডলাইনের ওপরে ১০ পিক্সেল জায়গা (ছবির নিচে) — ডেস্কটপ অপরিবর্তিত, মাপে যাচাইকৃত (2026-10-12)
+- [x] হিরো: "২৯% ছাড়" ডিসকাউন্ট ব্যাজ সরিয়ে ফেলা (সব হিরো ডিজাইন থেকে); ডিজাইন ০৫-এর মোবাইলো ছবি ও লেখা ওপরোপরি চড়িয়েছিল — স্ট্যাক ঠিক করা — Playwright-এ যাচাইকৃত (2026-10-12)
+- [x] Match Hero 05's header to the supplied burgundy/light reference, add editable brand title/subtitle fields, and verify mobile/desktop header rendering and order-button navigation to checkout.
+- [x] Show Hero 05's second header text line by default, populate its editable text fields with displayed values, add call-button copy editing, and verify saved header text through the editor and public page.
+- [x] Match Hero 05 reference prices and expose its existing price fields clearly; align and narrow both lower buttons; verified equal dimensions on mobile/desktop and saved price readback through editor/public page, restoring original prices.
+- [x] Build Hero 06 reference layout and independent text controls, preserving other designs and the no-discount-badge rule.
+- [x] Verify Hero 06 saved editor values, rendered images and equal buttons on mobile/desktop; verify four-image grid separately; restore original page settings.
+- [x] হিরো ০৬: ঘোষণা বার ও ছবির মাঝে ফাঁক মোবাইলে ৫ পিক্সেল (ছবির ফ্রেমের ভিতরের লেটারবক্স ফাঁক সরিয়েছি, ছবি নরমাল আনুপাতে ফ্রেম পূরোয়) — পিক্সেল মাপে যাচাইকৃত (2026-10-13)
+- [x] হিরো ০৬: ছবিতায় ৫ পিক্সেল বর্দার রেডিয়াছ (ছবি ও ফ্রেম দুইটাতাই) — মোবাইল প্ৰত্যক্ষ পাতায় মাপে যাচাইকৃত, কোনো লেখা/বোতাম কাটেনি (2026-10-13)
+- [x] Place Hero 07 badge/title above the image and save the requested editable headline; verified saved public-page rendering on mobile and desktop without overflow.
+- [x] হিরো ০৭: ব্যাজ ও শিরোনামের মাঝে ফাঁক ৩০ পিক্সেল (মোবাইল) — মাপে যাচাইকৃত, কোনো লেখা কাটেনি (2026-10-13)
+- [x] হিরো ০৭: ব্যাজের ওপরের ফাঁক ৩০ পিক্সেল (মোবাইল) — মাপে যাচাইকৃত, কোনো লেখা/বোতাম কাটেনি (2026-10-13)
+- [x] হিরো ০৭: ছবি বর্দার পর্যন্ত পুরোয়ায়া উইথ (ফ্রেমের ভিতরের ১২ পিক্সেল ফাঁক সরিয়েছি, ছবি নিজস্ব আনুপাতে ফ্রেম পূরোয়) — মোবাইল/ডেস্কটপ মাপে যাচাইকৃত (2026-10-13)
+- [x] হিরো ০৭: ছবির ফ্রেম ও ছবিতায় ৬ পিক্সেল বর্দার রেডিয়াছ — মোবাইল/ডেস্কটপ মাপে ও প্ৰত্যক্ষ পাতায় যাচাইকৃত (2026-10-13)
+- [x] হিরো ০৭: "সীমিত স্টক! মিস করবেন না" লেখাটি মাঝে সাজানো (মোবাইল/ডেস্কটপ) + লেখার ওপর-নিচ ৩ পিক্সেল জায়গা যাতে কর্নার কাতেনি — মাপে যাচাইকৃত (2026-10-13)
+- [x] টেমপ্লেট ২ সেকশন এডিটরে লাইভ প্রিভিউ: ডিজাইন বাছাই, রং ও লেখা বদলালে সাথে সাথে প্রিভিউতে দেখা যায় (Playwright-এ রং পরিবর্তন যাচাইকৃত) (2026-10-16)
+
+- [x] চেকআউট সেকশনের উপরের ফাঁকা জায়গা কমানো হয়েছে (৩২px → ১৬px), নিচের ফাঁকা জায়গা আগের মতোই
+- [x] কাস্টম টেমপ্লেরেট ফুটার: লেখার সাইজ ১২px এবং উপর-নিচের ফাঁকা জায়গা কমিয়ে বারের হাইট ছোট করা হয়েছ
+
+- [x] Add desktop widths for custom media/buttons and independent media side padding; authenticated live preview verified 60% video, 20/40px side padding and 30% button width with mobile unchanged; 45 tests passed.
+- [x] Align desktop custom sections to checkout card bounds; verified equal 896px/768px desktop widths and left edges, unchanged full-width mobile, no overflow/runtime errors; 36 tests passed.
