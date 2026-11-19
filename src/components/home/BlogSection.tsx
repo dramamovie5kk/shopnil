@@ -21,7 +21,7 @@ const BlogSection = () => {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-        {blogs.slice(0, 6).map((blog) => (
+        {blogs.map((blog) => (
           <Link
             key={blog.id}
             to={`/blog/${blog.slug}`}

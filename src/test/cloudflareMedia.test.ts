@@ -18,6 +18,29 @@ describe('public media performance and caching',()=>{
     expect(response.headers.has('Set-Cookie')).toBe(false);
     expect(response.headers.get('Cache-Control')).toBe('public,max-age=86400');
   });
+  it('caches complete responses even when R2 supplies range metadata', async () => {
+    const put = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('caches', { default: { match: vi.fn().mockResolvedValue(undefined), put } });
+    const get = vi.fn().mockResolvedValue({ ...object(), range: { offset: 0, length: 3 } });
+    const env = { BUCKET: { get } } as unknown as Env;
+    const request = new Request('https://example.test/api/media/products/image.png');
+    const response = await onRequest({ request, env, waitUntil: vi.fn() } as unknown as Parameters<typeof onRequest>[0]);
+    expect(response.status).toBe(200);
+    expect(response.headers.has('Content-Range')).toBe(false);
+    expect(get).toHaveBeenCalledWith('products/image.png', undefined);
+    expect(put).toHaveBeenCalledOnce();
+  });
+  it('keeps explicit byte ranges partial and outside the full-image cache', async () => {
+    const get = vi.fn().mockResolvedValue({ ...object(), range: { offset: 1, length: 2 } });
+    const env = { BUCKET: { get } } as unknown as Env;
+    const request = new Request('https://example.test/api/media/products/image.png', { headers: { Range: 'bytes=1-2' } });
+    const waitUntil = vi.fn();
+    const response = await onRequest({ request, env, waitUntil } as unknown as Parameters<typeof onRequest>[0]);
+    expect(response.status).toBe(206);
+    expect(response.headers.get('Content-Range')).toBe('bytes 1-2/3');
+    expect(get).toHaveBeenCalledWith('products/image.png', { range: request.headers });
+    expect(waitUntil).not.toHaveBeenCalled();
+  });
   it('returns 304 for matching ETags without a response body',async()=>{
     const env={BUCKET:{get:vi.fn().mockResolvedValue(object())}} as unknown as Env;
     const response=await storage(new Request('https://example.test/api/media/products/image.png',{headers:{'If-None-Match':'W/"asset-etag"'}}),env,['products','image.png'],null);
@@ -40,9 +63,10 @@ describe('responsive media variants',()=>{
     expect(response.status).toBe(200);expect(get.mock.calls[0][0]).toBe('products/image.png.responsive-384.webp');
   });
   it('falls back to the original when a variant is missing',async()=>{
-    const get=vi.fn().mockResolvedValue(object()),head=vi.fn().mockResolvedValue(null);
+    const get=vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(object()),head=vi.fn();
     await storage(new Request('https://example.test/api/media/products/image.png?width=960'),{BUCKET:{get,head}} as unknown as Env,['products','image.png'],null);
-    expect(get.mock.calls[0][0]).toBe('products/image.png');
+    expect(get.mock.calls.map(([key])=>key)).toEqual(['products/image.png.responsive-960.webp','products/image.png']);
+    expect(head).not.toHaveBeenCalled();
   });
   it('serves a public cache hit without reading R2 or D1',async()=>{
     const get=vi.fn();const cached=new Response('cached image');

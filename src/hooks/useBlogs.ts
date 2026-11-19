@@ -68,15 +68,16 @@ export const uploadBlogImage = async (file: File): Promise<string> => {
 
 export const useBlogs = () => {
   return useQuery({
-    queryKey: ["blog-posts"],
+    queryKey: ["blog-posts", "homepage"],
     queryFn: async () => {
       const { data, error } = await api
-        .from("blog_posts" as any)
-        .select("*, products(name, name_bn, image_url, slug)")
+        .from("blog_posts")
+        .select("id,slug,title,title_bn,featured_image,created_at,content,content_bn")
         .eq("is_published", true)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(6);
       if (error) throw error;
-      return (data || []) as unknown as BlogPost[];
+      return (data || []) as Pick<BlogPost, "id" | "slug" | "title" | "title_bn" | "featured_image" | "created_at" | "content" | "content_bn">[];
     },
   });
 };

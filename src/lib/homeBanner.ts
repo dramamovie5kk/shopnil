@@ -1,3 +1,5 @@
+export const homeBannerImageSizes = "100vw";
+
 export interface HomeBannerConfig {
   images: string[];
   width: number;

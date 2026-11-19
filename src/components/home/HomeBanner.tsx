@@ -5,7 +5,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { HomeBannerConfig, parseHomeBannerConfig } from "@/lib/homeBanner";
+import { HomeBannerConfig, homeBannerImageSizes, parseHomeBannerConfig } from "@/lib/homeBanner";
 import HeroSlider from "./HeroSlider";
 
 const responsiveHeightStyle = (config: HomeBannerConfig): CSSProperties => ({
@@ -53,7 +53,7 @@ export function BannerSlider({ config }: { config: HomeBannerConfig }) {
               <img
                 src={imageVariant(src,1600)}
                 srcSet={imageSrcSet(src)}
-                sizes="100vw"
+                sizes={homeBannerImageSizes}
                 decoding="async"
                 alt={`ব্যানার ${i + 1}`}
                 {...{ fetchpriority: i === 0 ? "high" : "low" }}
