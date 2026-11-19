@@ -17,15 +17,7 @@ export const useProducts = (options?: { featured?: boolean; limit?: number; cate
       }
 
       if (options?.categorySlug) {
-        const { data: category, error: categoryError } = await api
-          .from("categories")
-          .select("id")
-          .eq("slug", options.categorySlug)
-          .maybeSingle();
-
-        if (categoryError) throw categoryError;
-        if (!category) return [];
-        query = query.eq("category_id", category.id);
+        query = query.filter("category_id", "catalog-category", options.categorySlug);
       }
 
       if (options?.limit) {

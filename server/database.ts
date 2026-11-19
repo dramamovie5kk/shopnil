@@ -69,6 +69,20 @@ function filters(table:string, list:Filter[], params:D1Value[]) {
   assert(Array.isArray(list)&&list.length<=30);
   return list.map(f=>{
     const c=column(table,f.column);
+    if (f.op === 'catalog-category') {
+      assert(table === 'products' && f.column === 'category_id' && typeof f.value === 'string' && f.value.length > 0 && f.value.length <= 200, 'Invalid catalog category');
+      params.push(f.value);
+      return `id IN (
+        WITH RECURSIVE category_tree(id) AS (
+          SELECT id FROM categories WHERE slug = ?
+          UNION
+          SELECT child.id FROM categories child JOIN category_tree parent ON child.parent_id = parent.id
+        )
+        SELECT products.id FROM products JOIN category_tree ON products.category_id = category_tree.id
+        UNION
+        SELECT links.product_id FROM product_category_links links JOIN category_tree ON links.category_id = category_tree.id
+      )`;
+    }
     if(f.op==='in') {assert(Array.isArray(f.value)&&f.value.length<=200); if(!f.value.length) return '0=1';params.push(...f.value.map(bindValue));return `${c} IN (${f.value.map(()=>'?').join(',')})`;}
     if(f.op==='is') {assert(f.value===null);return `${c} IS NULL`;}
     const ops:Record<string,string>={eq:'=',neq:'<>',gt:'>',gte:'>=',lt:'<',lte:'<=',like:'LIKE',ilike:'LIKE'};
@@ -120,6 +134,7 @@ async function projectMany(env:Env,table:string,rows:Row[],selection:string,user
 export async function runQuery(env:Env,q:Query,user:Identity|null,request:Request):Promise<{data:unknown;error:null;count?:number}> {
   assert(q&&typeof q.table==='string'&&['select','insert','update','delete','upsert'].includes(q.action));
   definition(q.table);
+  if (q.action !== 'select') assert(!(q.filters || []).some(filter => filter.op === 'catalog-category'), 'Catalog category filters are read-only');
   validatePublicColumns(q.table,q,user);
   const params:D1Value[]=[],conditions=[await scope(q.table,user,request,params),...filters(q.table,q.filters||[],params)];
   const where=' WHERE '+conditions.map(c=>'('+c+')').join(' AND ');

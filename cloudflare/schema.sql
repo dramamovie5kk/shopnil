@@ -650,3 +650,10 @@ ALTER TABLE "purchase_order_items_new" RENAME TO "purchase_order_items";
 
 CREATE INDEX "idx_purchase_order_items_product_id" ON "purchase_order_items"("product_id");
 CREATE INDEX "idx_purchase_order_items_purchase_order_id" ON "purchase_order_items"("purchase_order_id");
+CREATE TABLE product_category_links (
+  product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  category_id TEXT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  PRIMARY KEY (product_id, category_id)
+);
+
+CREATE INDEX idx_product_category_links_category ON product_category_links(category_id, product_id);

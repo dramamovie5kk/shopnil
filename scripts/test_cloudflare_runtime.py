@@ -83,6 +83,24 @@ assert page_data['show_hero_section'] is True and page_data['template_styles']['
 dbquery(admin,'sales_pages','update',values={'hero_subheadline':'Updated'},filters=[eq('id',page)])
 assert dbquery(anonymous,'sales_pages',select='*')['data'][0]['show_hero_section'] is True
 report('catalog joins and compressed sales-page document round-trip')
+
+# Category links preserve overlapping supplier categories without duplicating products.
+parent, alternate = uuid.uuid4().hex, uuid.uuid4().hex
+database.executemany("INSERT INTO categories(id,name,name_bn,slug) VALUES (?, ?, ?, ?)", [
+    (parent, 'Parent', 'Parent', 'parent-'+suffix),
+    (alternate, 'Alternate', 'Alternate', 'alternate-'+suffix),
+])
+database.execute("UPDATE categories SET parent_id=? WHERE id=?", (parent, category))
+database.executemany("INSERT INTO product_category_links(product_id,category_id) VALUES (?,?)", [
+    (product, alternate), (product, parent),
+])
+database.commit()
+for slug in ['parent-'+suffix, 'alternate-'+suffix, 'test-'+suffix]:
+    category_filter = {'column':'category_id','op':'catalog-category','value':slug}
+    assert dbquery(anonymous,'products',select='id',filters=[category_filter])['data'] == [{'id':product}]
+assert dbquery(anonymous,'products',select='id',filters=[{**category_filter,'value':'unknown'}])['data'] == []
+report('catalog category filters include child and linked products without duplicates')
+
 dbquery(admin,'site_settings','upsert',values=[{'setting_key':'site_name','setting_value':'Test'},{'setting_key':'fb_pixel_access_token','setting_value':'dummy-not-a-token'}],onConflict='setting_key')
 public=dbquery(anonymous,'site_settings',select='*')['data']
 assert {r['setting_key'] for r in public}=={'site_name'}
