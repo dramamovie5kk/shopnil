@@ -1,3 +1,4 @@
+import { isProductImageUrl } from "@/lib/responsiveImage";
 import { Link } from "react-router-dom";
 import { Heart, Trash2, ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,7 +86,7 @@ const Wishlist = () => {
                   <div key={product.id} className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
                     <Link to={`/product/${product.slug}`} className="block">
                       <div className="aspect-square overflow-hidden bg-secondary/50">
-                        {product.image_url?.startsWith("http") ? (
+                        {isProductImageUrl(product.image_url) ? (
                           <img
                             src={product.image_url}
                             alt={displayName}

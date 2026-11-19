@@ -1,3 +1,7 @@
+export function isProductImageUrl(value: string | null | undefined): value is string {
+  return typeof value === 'string' && /^(?:https?:\/\/|\/(?![\/\\]))/i.test(value);
+}
+
 const widths = [384, 960, 1600];
 export function imageVariant(src: string, width: number): string {
   try {
