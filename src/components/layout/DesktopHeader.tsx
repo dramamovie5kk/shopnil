@@ -1,3 +1,4 @@
+import { HeaderMarquee } from "./HeaderMarquee";
 import { parseHeaderCustomization, type HeaderPart } from '@/lib/headerCustomization';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -25,13 +26,18 @@ export default function DesktopHeader({ onMenuOpen }: { onMenuOpen: (trigger: HT
   const bn = language !== 'en';
   const siteName = getSetting('site_name', 'বারিধারা');
   const logo = theme.logo?.imageUrl || getSetting('site_logo_url');
-  const messages = getSetting('topbar_messages', bn ? 'টাকা হাতে পেয়ে দেখে পরিশোধ করুন!' : 'Pay when your order arrives').split(/\n|\|/).map(x => x.trim()).filter(Boolean);
+  const announcements = getSetting('topbar_messages', bn ? '👉 টাকা হাতে পেয়ে দেখে টাকা দিন|🏆 ১০০% কোয়ালিটি পণ্য|🔁 ৭ দিনের রিটার্ন/এক্সচেঞ্জ|🚚 হোম ডেলিভারি সারা বাংলাদেশে' : 'Pay when your order arrives');
+  const messages = announcements.split(/\n|\|/).map(x => x.trim()).filter(Boolean);
   const plain = (text: string) => text.replace(/<[^>]*>/g, '').trim();
   const dashboard = isAdmin || isModerator ? '/admin' : '/dashboard';
   const locale = bn ? 'bn-BD' : 'en-BD';
   const iconClass = 'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e3ebe6] bg-white text-[#173d2d] transition-colors hover:bg-[#eff6f1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1b7745]';
   return <div data-desktop-header className="hidden lg:block">
-    {(getSetting('topbar_enabled', '1') !== '0' || theme.topbar?.visible === true) && <div {...part('topbar')} className="bg-[#073b29] text-white" style={{ backgroundImage: 'radial-gradient(#ffffff12 0.6px, transparent 0.6px)', backgroundSize: '16px 16px' }}>
+    {getSetting('topbar_mode', 'marquee') !== 'static' ? (
+      getSetting('topbar_enabled', '1') !== '0' && <HeaderMarquee device="desktop" bn={bn} messages={copy('message', announcements)}
+        duration={getSetting('topbar_marquee_duration','30')} color={getSetting('topbar_text_color')}
+        background={getSetting('topbar_bg_color') || (getSetting('topbar_gradient_from') && getSetting('topbar_gradient_to') ? `linear-gradient(${getSetting('topbar_gradient_direction','to right')}, ${getSetting('topbar_gradient_from')}, ${getSetting('topbar_gradient_to')})` : undefined)} />
+    ) : (getSetting('topbar_enabled', '1') !== '0' || theme.topbar?.visible === true) && <div {...part('topbar')} className="bg-[#073b29] text-white" style={{ backgroundImage: 'radial-gradient(#ffffff12 0.6px, transparent 0.6px)', backgroundSize: '16px 16px' }}>
       <div className="mx-auto flex min-h-8 max-w-[1440px] items-center justify-between gap-5 px-5 text-[11px] xl:text-xs">
         <div className="flex shrink-0 items-center gap-4">
           <span {...part('assurance')} className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-[#f4c700]" />{plain(copy('assurance',getSetting('topbar_original', bn ? 'পণ্যের মানের নিশ্চয়তা' : 'Quality products')))}</span>

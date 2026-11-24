@@ -1662,3 +1662,14 @@
   [data-product-copy] [data-product-short-description],
   [data-product-detail-panel] .product-details-copy { font-size:var(--pd-copy-desktop,16px); }
 }
+
+.header-marquee-window { container-type: inline-size; }
+.header-marquee-track { display: flex; width: max-content; animation: header-announcements var(--header-marquee-duration) linear infinite; }
+.header-marquee-track[data-paused="true"] { animation-play-state: paused; }
+.header-marquee-group { display: flex; flex: none; min-width: 100cqw; align-items: center; justify-content: space-around; gap: 2rem; padding: .5rem 1rem; white-space: nowrap; }
+@keyframes header-announcements { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .header-marquee-track { display: block; width: auto; animation: none; }
+  .header-marquee-group { min-width: 0; flex-wrap: wrap; justify-content: center; gap: .25rem 1rem; white-space: normal; overflow-wrap: anywhere; }
+  .header-marquee-group[aria-hidden="true"], .header-marquee-control { display: none; }
+}

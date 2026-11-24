@@ -94,6 +94,8 @@ interface AllSettings extends Record<keyof typeof bottomBarDefaults,string>, Rec
   topbar_support: string;
   topbar_messages: string;
   topbar_enabled: string;
+  topbar_mode: string;
+  topbar_marquee_duration: string;
   footer_phone: string;
   footer_email: string;
   footer_address: string;
@@ -311,6 +313,8 @@ const defaultSettings: AllSettings = {
   topbar_original: "100% অরিজিনাল প্রোডাক্ট",
   topbar_support: "24/7 কাস্টমার সাপোর্ট",
   topbar_enabled: "1",
+  topbar_mode: "marquee",
+  topbar_marquee_duration: "30",
   topbar_messages: "👉 টাকা হাতে পেয়ে দেখে টাকা দিন|🏆 ১০০% কোয়ালিটি পণ্য|🔁 ৭ দিনের রিটার্ন/এক্সচেঞ্জ|🚚 হোম ডেলিভারি সারা বাংলাদেশে",
   footer_phone: "01700-000000",
   footer_email: "info@example.com",
@@ -1213,10 +1217,22 @@ const AdminSettings = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">📢 টপ বারের মেসেজ</CardTitle>
-                    <CardDescription>শুধু একটি মেসেজ দিন — এটি স্থিরভাবে দেখাবে, স্ক্রল হবে না। টপ বার বন্ধ করতে উপরের সুইচটি অফ করুন।</CardDescription>
+                    <CardDescription>প্রতিটি ঘোষণা আলাদা লাইনে লিখুন। টপ বার বন্ধ করতে উপরের সুইচটি ব্যবহার করুন।</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <Textarea
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <label className="flex items-center gap-2">
+                        <Switch checked={settings.topbar_mode !== "static"} aria-label="চলমান ঘোষণা"
+                          onCheckedChange={enabled => setSettings(prev => ({ ...prev, topbar_mode: enabled ? "marquee" : "static" }))} />
+                        চলমান ঘোষণা
+                      </label>
+                      {settings.topbar_mode !== "static" && <label className="flex items-center gap-2">
+                        একবার ঘুরতে সময় (সেকেন্ড)
+                        <Input type="number" min={10} max={90} className="w-24" value={settings.topbar_marquee_duration}
+                          onChange={event => setSettings(prev => ({ ...prev, topbar_marquee_duration: event.target.value }))} />
+                      </label>}
+                    </div>
+                    <Textarea aria-label="টপ বারের ঘোষণা"
                       value={settings.topbar_messages || ""}
                       onChange={(e) => setSettings({ ...settings, topbar_messages: e.target.value } as any)}
                       rows={2}

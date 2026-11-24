@@ -13,6 +13,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePages } from "@/hooks/usePages";
 
+import { HeaderMarquee } from "./HeaderMarquee";
 import DesktopHeader from "./DesktopHeader";
 import { headerCustomizationCss, parseHeaderCustomization, type HeaderPart } from "@/lib/headerCustomization";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -81,10 +82,11 @@ const Header = () => {
   const headerBgColor = getSetting("header_bg_color", "#0f172a");
   const headerTextColor = getSetting("header_text_color", "#ffffff");
   const topBarEnabled = getSetting("topbar_enabled", "1") !== "0";
-  const topBarMessage = (getSetting(
+  const topBarMessages = getSetting(
     "topbar_messages",
     "👉 টাকা হাতে পেয়ে দেখে টাকা দিন|🏆 ১০০% কোয়ালিটি পণ্য|🔁 ৭ দিনের রিটার্ন/এক্সচেঞ্জ|🚚 হোম ডেলিভারি সারা বাংলাদেশে"
-  ).split(/\n|\|/).map(s => s.trim()).filter(Boolean)[0]) || "";
+  );
+  const topBarMessage = topBarMessages.split(/\n|\|/).map(s => s.trim()).find(Boolean) || "";
   const topBarBgColor = getSetting("topbar_bg_color", "");
   const topBarTextColor = getSetting("topbar_text_color", "");
   const topBarGradFrom = getSetting("topbar_gradient_from", "#16a34a");
@@ -154,23 +156,31 @@ const Header = () => {
       <header className="sticky top-0 z-50 bg-background shadow-lg">
         <style>{headerCustomizationCss(customization)}</style>
         <DesktopHeader onMenuOpen={trigger => { menuTriggerRef.current = trigger; setMenuDevice('desktop'); setMobileMenuOpen(true); }} />
-        {/* Top Bar (single static message, toggleable from header settings) */}
-        {(topBarEnabled || customization.mobile.topbar?.visible === true) && topBarMessage && (
-          <div 
-            {...mobilePart('topbar')}
-            className="bg-primary text-primary-foreground lg:hidden"
-            style={{ 
-              backgroundColor: (topBarGradFrom && topBarGradTo) ? undefined : (topBarBgColor || undefined),
-              backgroundImage: (topBarGradFrom && topBarGradTo)
-                ? `linear-gradient(${topBarGradDir}, ${topBarGradFrom}, ${topBarGradTo})`
-                : undefined,
-              color: topBarTextColor || undefined 
-            }}
-          >
-            <div className="overflow-hidden h-9 flex items-center justify-center">
-              <span {...mobilePart('message')} className="text-[13px] font-medium">{mobileCopy('message',topBarMessage.replace(/<[^>]*>/g, ''))}</span>
-            </div>
+        {getSetting('topbar_mode', 'marquee') !== 'static' ? (
+          topBarEnabled && <div className="lg:hidden">
+            <HeaderMarquee device="mobile" bn={language !== 'en'} messages={mobileCopy('message', topBarMessages)}
+              duration={getSetting('topbar_marquee_duration', '30')}
+              background={topBarBgColor || (getSetting('topbar_gradient_from') && getSetting('topbar_gradient_to') ? `linear-gradient(${topBarGradDir}, ${topBarGradFrom}, ${topBarGradTo})` : undefined)}
+              color={topBarTextColor} />
           </div>
+        ) : (
+          (topBarEnabled || customization.mobile.topbar?.visible === true) && topBarMessage && (
+            <div
+              {...mobilePart('topbar')}
+              className="bg-primary text-primary-foreground lg:hidden"
+              style={{
+                backgroundColor: (topBarGradFrom && topBarGradTo) ? undefined : (topBarBgColor || undefined),
+                backgroundImage: (topBarGradFrom && topBarGradTo)
+                  ? `linear-gradient(${topBarGradDir}, ${topBarGradFrom}, ${topBarGradTo})`
+                  : undefined,
+                color: topBarTextColor || undefined
+              }}
+            >
+              <div className="overflow-hidden h-9 flex items-center justify-center">
+                <span {...mobilePart('message')} className="text-[13px] font-medium">{mobileCopy('message',topBarMessage.replace(/<[^>]*>/g, ''))}</span>
+              </div>
+            </div>
+          )
         )}
 
         {/* Main Header */}
