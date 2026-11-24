@@ -202,7 +202,7 @@ const Header = () => {
                   {...mobilePart('menu')}
                   onClick={event => { menuTriggerRef.current = event.currentTarget; setMenuDevice('mobile'); setMobileMenuOpen(!mobileMenuOpen); }}
                   aria-label="মেনু"
-                  className="h-10 w-10 rounded-xl border border-[color:color-mix(in_srgb,currentColor_45%,transparent)] flex items-center justify-center transition-colors"
+                  className="h-10 w-10 rounded-xl mobile-header-button flex items-center justify-center transition-colors"
                   style={{ color: headerTextColor }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -213,7 +213,7 @@ const Header = () => {
                   {...mobilePart('search')}
                   onClick={() => setIsMobileSearchOpen((v) => !v)}
                   aria-label="সার্চ"
-                  className="h-10 w-10 rounded-xl border border-[color:color-mix(in_srgb,currentColor_45%,transparent)] flex items-center justify-center transition-colors"
+                  className="h-10 w-10 rounded-xl mobile-header-button flex items-center justify-center transition-colors"
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
@@ -322,7 +322,7 @@ const Header = () => {
 
                 {/* Account */}
                 <div className="relative group">
-                  <button {...mobilePart('account')} className="flex items-center gap-2 p-2 rounded-xl max-lg:h-10 max-lg:w-10 max-lg:justify-center max-lg:border max-lg:border-[color:color-mix(in_srgb,currentColor_45%,transparent)] transition-colors" style={{ color: headerTextColor }}>
+                  <button {...mobilePart('account')} className="flex items-center gap-2 p-2 rounded-xl max-lg:h-10 max-lg:w-10 max-lg:justify-center mobile-header-button transition-colors" style={{ color: headerTextColor }}>
                     <User {...mobileHeaderIcon} />
                     <div className="text-left hidden sm:block">
                       <p className="text-xs opacity-70">{language === 'bn' ? 'আমার' : 'My'}</p>
@@ -389,7 +389,7 @@ const Header = () => {
                   {...mobilePart('cart')}
                   onClick={() => setIsDrawerOpen(true)}
                   aria-label={mobileCopy('cart','কার্ট')}
-                  className="relative p-2 rounded-xl max-lg:h-10 max-lg:w-10 max-lg:flex max-lg:items-center max-lg:justify-center lg:border-0 border border-[color:color-mix(in_srgb,currentColor_45%,transparent)] transition-colors"
+                  className="relative p-2 rounded-xl max-lg:h-10 max-lg:w-10 max-lg:flex max-lg:items-center max-lg:justify-center mobile-header-button transition-colors"
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >

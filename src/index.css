@@ -1674,3 +1674,10 @@
   .header-marquee-sequence { flex-wrap: wrap; justify-content: center; gap: .25rem .75rem; padding-inline: .75rem; white-space: normal; overflow-wrap: anywhere; }
   .header-marquee-group[aria-hidden="true"], .header-marquee-sequence[aria-hidden="true"], .header-marquee-control { display: none; }
 }
+
+@media (max-width: 1023px) {
+  .mobile-header-button {
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+    box-shadow: 0 2px 5px rgb(0 0 0 / .13), inset 0 1px 0 rgb(255 255 255 / .08);
+  }
+}
