@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useProducts } from '@/hooks/useProducts';
+import { useProductOptions } from '@/hooks/useProducts';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { homeReelsSetting, isReelSource, parseHomeReels, reelCover, reelPlayback, reelSources, type HomeReel } from '@/lib/homeReels';
 
@@ -17,7 +17,7 @@ function ReelEditor({ initial, onSave, saving }: {
   onSave: (value: string) => Promise<unknown>;
   saving: boolean;
 }) {
-  const { data: products = [], isLoading: productsLoading, isError: productsError } = useProducts({ compact: true });
+  const { data: products = [], isLoading: productsLoading, isError: productsError } = useProductOptions();
   const [drafts, setDrafts] = useState<DraftReel[]>(initial);
   const [error, setError] = useState('');
   const update = (id: string, patch: Partial<DraftReel>) => {
@@ -30,6 +30,11 @@ function ReelEditor({ initial, onSave, saving }: {
       || (reel.cover.trim() && !reelCover(reel.cover)));
     if (invalid >= 0) {
       setError(`রিল ${(invalid + 1).toLocaleString('bn-BD')}: শিরোনাম, নির্বাচিত উৎসের ভিডিও লিংক এবং দেওয়া থাকলে কভার লিংক যাচাই করুন।`);
+      return;
+    }
+    const unlinked = drafts.findIndex(reel => !products.some(product => product.slug === reel.productSlug));
+    if (unlinked >= 0) {
+      setError(`রিল ${(unlinked + 1).toLocaleString('bn-BD')}: তালিকা থেকে একটি পণ্য বেছে নিন।`);
       return;
     }
     try {
@@ -86,7 +91,7 @@ function ReelEditor({ initial, onSave, saving }: {
                     <option value={reel.productSlug}>{reel.productSlug}</option>}
                   {products.map(product => <option key={product.id} value={product.slug}>{product.name_bn || product.name}</option>)}
                 </select>
-                <p className="text-xs text-muted-foreground">{productsError ? 'পণ্যের তালিকা লোড হয়নি।' : 'এই পণ্যটি রিলের Shop Now ও Add to Cart বাটনে ব্যবহার হবে।'}</p>
+                <p className="text-xs text-muted-foreground">{productsError ? 'পণ্যের তালিকা লোড হয়নি।' : 'অর্ডার করুন বাটনে এই পণ্যের ডিটেইলস পেজ খুলবে।'}</p>
               </div>
               <div className="space-y-1">
                 <Label htmlFor={`${reel.id}-cover`}>কভার ছবির লিংক (ঐচ্ছিক)</Label>
@@ -101,7 +106,7 @@ function ReelEditor({ initial, onSave, saving }: {
             onClick={() => setDrafts(current => [...current, { id: crypto.randomUUID(), source: '', url: '', title: '', cover: '' }])}>
             <Plus className="mr-2 size-4" />রিল যোগ করুন
           </Button>
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || productsLoading || productsError}>
             <Save className="mr-2 size-4" />{saving ? 'সেভ হচ্ছে…' : 'রিলস সেভ করুন'}
           </Button>
         </div>

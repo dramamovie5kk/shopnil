@@ -1,8 +1,6 @@
 import { useRef, useState, type PointerEvent } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useCart } from '@/contexts/CartContext';
-import { useProduct } from '@/hooks/useProducts';
 import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { reelPlayback, type HomeReel } from '@/lib/homeReels';
 
@@ -17,9 +15,7 @@ export default function ReelViewer({ reel, multiple, navigate, close, english }:
   const swiped = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [unlockedReel, setUnlockedReel] = useState<string | null>(null);
-  const { data: product } = useProduct(reel.productSlug || '');
-  const { addToCart } = useCart();
-  const productPath = product ? `/product/${encodeURIComponent(product.slug)}` : '/products';
+  const productPath = reel.productSlug ? `/product/${encodeURIComponent(reel.productSlug)}` : null;
   const player = reelPlayback(reel.source, reel.url);
   if (!player) return null;
 
@@ -109,21 +105,19 @@ export default function ReelViewer({ reel, multiple, navigate, close, english }:
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/65 to-transparent p-3 pt-7">
           <div className="pointer-events-auto grid grid-cols-2 gap-2">
-            <Link to={productPath} onClick={close}
+            <Link to="/shop" onClick={close}
               className="flex min-h-10 items-center justify-center rounded-full bg-white px-2 text-center text-xs font-bold text-slate-900 transition-colors hover:bg-slate-100">
               Shop Now
             </Link>
-            {product?.has_variations ? (
+            {productPath ? (
               <Link to={productPath} onClick={close}
-                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white backdrop-blur-sm">
-                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> Add to Cart
+                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white backdrop-blur-sm hover:bg-white/30">
+                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> অর্ডার করুন
               </Link>
             ) : (
-              <button type="button" disabled={!product || product.stock <= 0}
-                title={!product ? (english ? 'No product linked' : 'রিলের সঙ্গে পণ্য লিংক করা হয়নি') : undefined}
-                onClick={() => { if (product) { close(); addToCart(product); } }}
-                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white backdrop-blur-sm hover:bg-white/30 disabled:opacity-60">
-                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> Add to Cart
+              <button type="button" disabled title={english ? 'No product linked' : 'রিলের সঙ্গে পণ্য লিংক করা হয়নি'}
+                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white opacity-60 backdrop-blur-sm">
+                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> অর্ডার করুন
               </button>
             )}
           </div>

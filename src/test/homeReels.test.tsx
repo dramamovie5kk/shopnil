@@ -10,12 +10,9 @@ vi.mock('@/hooks/useSiteSettings', () => ({
   useSiteSettings: () => ({ getSetting: () => settings.value, updateSetting: settings.save }),
 }));
 vi.mock('@/contexts/LanguageContext', () => ({ useLanguage: () => ({ language: 'en' }) }));
-const cart = vi.hoisted(() => ({ add: vi.fn(), product: { slug: 'demo-product', stock: 5, has_variations: false } }));
 vi.mock('@/hooks/useProducts', () => ({
-  useProducts: () => ({ data: [{ id: 'product-id', slug: 'demo-product', name: 'Demo product' }] }),
-  useProduct: (slug: string) => ({ data: slug ? cart.product : undefined }),
+  useProductOptions: () => ({ data: [{ id: 'product-id', slug: 'demo-product', name: 'Demo product' }] }),
 }));
-vi.mock('@/contexts/CartContext', () => ({ useCart: () => ({ addToCart: cart.add }) }));
 vi.mock('@/components/admin/AdminLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => children }));
 afterEach(() => { cleanup(); settings.value = ''; settings.save.mockClear(); });
 
@@ -41,10 +38,13 @@ it('asks for the source first and saves the selected source with the video URL',
   fireEvent.change(screen.getByLabelText('ভিডিও লিংক'), { target: { value: 'https://example.test/demo.mp4' } });
   fireEvent.change(screen.getByLabelText('শিরোনাম'), { target: { value: 'Demo reel' } });
   fireEvent.click(screen.getByRole('button', { name: 'রিলস সেভ করুন' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('তালিকা থেকে একটি পণ্য বেছে নিন');
+  fireEvent.change(screen.getByLabelText('রিলের পণ্য'), { target: { value: 'demo-product' } });
+  fireEvent.click(screen.getByRole('button', { name: 'রিলস সেভ করুন' }));
   await waitFor(() => expect(settings.save).toHaveBeenCalledOnce());
   const [key, raw] = settings.save.mock.calls[0];
   expect(key).toBe('home_reels');
-  expect(parseHomeReels(raw)).toEqual([expect.objectContaining({ title: 'Demo reel', source: 'mp4', url: 'https://example.test/demo.mp4' })]);
+  expect(parseHomeReels(raw)).toEqual([expect.objectContaining({ title: 'Demo reel', source: 'mp4', productSlug: 'demo-product', url: 'https://example.test/demo.mp4' })]);
 });
 
 it('loads an embedded player only after the visitor chooses a reel', async () => {
@@ -67,8 +67,8 @@ it('keeps the player clean and navigates between reels with arrow keys', async (
   const dialog = await screen.findByRole('dialog');
   expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/a.mp4');
   expect(dialog.querySelector('video')).not.toHaveAttribute('controls');
-  expect(screen.getByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/products');
-  expect(screen.getByRole('button', { name: 'Add to Cart' })).toBeDisabled();
+  expect(screen.getByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/shop');
+  expect(screen.getByRole('button', { name: 'অর্ডার করুন' })).toBeDisabled();
   expect(dialog.querySelector('h2')).toHaveClass('sr-only');
   fireEvent.keyDown(dialog, { key: 'ArrowRight' });
   expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/b.mp4');
@@ -77,11 +77,10 @@ it('keeps the player clean and navigates between reels with arrow keys', async (
 });
 
 
-it('connects both reel actions to the linked product', async () => {
+it('opens the shop and routes orders to the linked product', async () => {
   settings.value = JSON.stringify([{ id: 'linked', source: 'mp4', url: 'https://example.test/demo.mp4', title: 'Linked reel', cover: '', productSlug: 'demo-product' }]);
   render(<MemoryRouter><ReelsSection /></MemoryRouter>);
   fireEvent.click(screen.getByRole('button', { name: 'Play Linked reel' }));
-  expect(await screen.findByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/product/demo-product');
-  fireEvent.click(screen.getByRole('button', { name: 'Add to Cart' }));
-  expect(cart.add).toHaveBeenCalledWith(cart.product);
+  expect(await screen.findByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/shop');
+  expect(screen.getByRole('link', { name: 'অর্ডার করুন' })).toHaveAttribute('href', '/product/demo-product');
 });

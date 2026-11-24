@@ -68,3 +68,20 @@ export const useCategories = () => {
     },
   });
 };
+
+export function useProductOptions() {
+  return useQuery({
+    queryKey: ["product-options"],
+    queryFn: async () => {
+      const pageSize = 250;
+      const products: Pick<Product, "id" | "slug" | "name" | "name_bn">[] = [];
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await api.from("products").select("id,slug,name,name_bn")
+          .order("name").order("id").range(offset, offset + pageSize - 1);
+        if (error) throw error;
+        products.push(...data);
+        if (data.length < pageSize) return products;
+      }
+    },
+  });
+}
