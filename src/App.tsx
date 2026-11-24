@@ -73,6 +73,7 @@ const AdminInventory = lazy(() => import("./pages/admin/AdminInventory"));
 const AdminSalesPages = lazy(() => import("./pages/admin/AdminSalesPages"));
 const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
 const AdminSpinSettings = lazy(() => import("./pages/admin/AdminSpinSettings"));
+const AdminReels = lazy(() => import("./pages/admin/AdminReels"));
 const AdminBlogs = lazy(() => import("./pages/admin/AdminBlogs"));
 
 const PageLoader = () => (
@@ -131,6 +132,7 @@ const App = () => (
                   <Route element={<AdminGuard adminOnly><Outlet /></AdminGuard>}>
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="custom-code" element={<AdminCustomCode />} />
+                    <Route path="reels" element={<AdminReels />} />
                   </Route>
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="inventory" element={<AdminInventory />} />

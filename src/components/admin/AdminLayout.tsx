@@ -15,6 +15,7 @@ import {
   Settings,
   Boxes,
   FileText,
+  Clapperboard,
   Star,
   RotateCw,
   PenSquare,
@@ -64,6 +65,7 @@ const getMenuItems = (isAdmin: boolean): MenuItem[] => {
     { icon: Boxes, label: "Inventory", path: "/admin/inventory", roles: ["admin"] },
     { icon: FileText, label: "Sales Pages", path: "/admin/sales-pages", roles: ["admin"] },
     { icon: RotateCw, label: "Spin Settings", path: "/admin/spin-settings", roles: ["admin", "moderator"] },
+    { icon: Clapperboard, label: "রিলস", path: "/admin/reels", roles: ["admin"] },
     { icon: Settings, label: "Settings", path: "/admin/settings", roles: ["admin"] },
   ];
 

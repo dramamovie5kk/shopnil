@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HomeBanner from '@/components/home/HomeBanner';
 import CategoryGrid from '@/components/home/CategoryGrid';
+import ReelsSection from '@/components/home/ReelsSection';
 import ProductCard from '@/components/home/ProductCard';
 import BlogSection from '@/components/home/BlogSection';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ export default function WebsiteHome() {
     <HomeBanner />
     <main className="flex-1 max-w-[1240px] mx-auto w-full px-1.5 md:px-4 pb-20 lg:pb-8">
       <CategoryGrid />
+      <ReelsSection />
       {productsEnabled && <section style={{backgroundColor:homeColor(getSetting('home_products_bg_color'))}} className="py-8 w-[calc(100vw-40px)] left-1/2 -translate-x-1/2 relative" aria-labelledby="home-products-heading">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <h1 style={{color:homeColor(getSetting('home_products_title_color'))}} id="home-products-heading" className="text-2xl md:text-3xl font-bold">{title}</h1>

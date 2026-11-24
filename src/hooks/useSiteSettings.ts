@@ -25,7 +25,7 @@
  export const useSiteSettings = () => {
    const queryClient = useQueryClient();
  
-   const { data: settings = [], isLoading } = useQuery({
+   const { data: settings = [], isLoading, isError } = useQuery({
      queryKey: ["site-settings"],
      queryFn: async () => {
        const { data, error } = await api
@@ -60,6 +60,7 @@
    return {
      settings,
      isLoading,
+     isError,
      getSetting,
      updateSetting,
      bulkUpdateSettings,
