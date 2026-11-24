@@ -1,17 +1,25 @@
 import { useRef, useState, type PointerEvent } from 'react';
+import { ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useCart } from '@/contexts/CartContext';
+import { useProduct } from '@/hooks/useProducts';
 import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { reelPlayback, type HomeReel } from '@/lib/homeReels';
 
-export default function ReelViewer({ reel, multiple, navigate, english }: {
+export default function ReelViewer({ reel, multiple, navigate, close, english }: {
   reel: HomeReel;
   multiple: boolean;
   navigate: (step: -1 | 1) => void;
+  close: () => void;
   english: boolean;
 }) {
   const start = useRef<{ id: number; x: number; y: number } | null>(null);
   const swiped = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [unlockedReel, setUnlockedReel] = useState<string | null>(null);
+  const { data: product } = useProduct(reel.productSlug || '');
+  const { addToCart } = useCart();
+  const productPath = product ? `/product/${encodeURIComponent(product.slug)}` : '/products';
   const player = reelPlayback(reel.source, reel.url);
   if (!player) return null;
 
@@ -27,10 +35,11 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
     const dx = event.clientX - start.current.x;
     const dy = event.clientY - start.current.y;
     start.current = null;
-    if (multiple && Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) {
+    const distance = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
+    if (multiple && Math.abs(distance) >= 36) {
       swiped.current = true;
       setUnlockedReel(null);
-      navigate(dx < 0 ? 1 : -1);
+      navigate(distance < 0 ? 1 : -1);
     }
   };
   const togglePlayback = () => {
@@ -54,14 +63,21 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
         }
       }}
       onKeyDown={event => {
-        if (!multiple || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+        if (!multiple || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault();
         setUnlockedReel(null);
-        navigate(event.key === 'ArrowLeft' ? -1 : 1);
+        navigate(event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1);
       }}>
       <DialogTitle className="sr-only">{reel.title}</DialogTitle>
-      <div data-reel-slide className="relative aspect-[9/16] touch-pan-y select-none overflow-hidden"
-        onPointerDown={begin} onPointerUp={end} onPointerCancel={() => { start.current = null; }}>
+      <div data-reel-slide className="relative aspect-[9/16] touch-none select-none overflow-hidden"
+        onPointerDown={begin} onPointerUp={end} onPointerCancel={() => { start.current = null; }}
+        onClickCapture={event => {
+          if (swiped.current && event.detail > 0) {
+            swiped.current = false;
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}>
         {player.kind === 'video' && <button
           type="button" aria-label={english ? 'Play or pause video' : 'ভিডিও চালান বা থামান'}
           onClick={togglePlayback} className="block h-full w-full focus-visible:outline focus-visible:-outline-offset-2">
@@ -73,7 +89,7 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
             allowFullScreen referrerPolicy="strict-origin-when-cross-origin" className="h-full w-full" />
           {multiple && unlockedReel !== reel.id && (
             <button type="button" aria-label={english ? 'Enable video controls' : 'ভিডিও নিয়ন্ত্রণ চালু করুন'}
-              className="absolute inset-0 cursor-grab touch-pan-y focus-visible:outline focus-visible:-outline-offset-2"
+              className="absolute inset-0 cursor-grab touch-none focus-visible:outline focus-visible:-outline-offset-2"
               onClick={event => {
                 if (!swiped.current || event.detail === 0) setUnlockedReel(reel.id);
                 swiped.current = false;
@@ -91,6 +107,27 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
             </a>
           </div>
         )}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/65 to-transparent p-3 pt-7">
+          <div className="pointer-events-auto grid grid-cols-2 gap-2">
+            <Link to={productPath} onClick={close}
+              className="flex min-h-10 items-center justify-center rounded-full bg-white px-2 text-center text-xs font-bold text-slate-900 transition-colors hover:bg-slate-100">
+              Shop Now
+            </Link>
+            {product?.has_variations ? (
+              <Link to={productPath} onClick={close}
+                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white backdrop-blur-sm">
+                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> Add to Cart
+              </Link>
+            ) : (
+              <button type="button" disabled={!product || product.stock <= 0}
+                title={!product ? (english ? 'No product linked' : 'রিলের সঙ্গে পণ্য লিংক করা হয়নি') : undefined}
+                onClick={() => { if (product) { close(); addToCart(product); } }}
+                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white backdrop-blur-sm hover:bg-white/30 disabled:opacity-60">
+                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> Add to Cart
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </DialogContent>
   );

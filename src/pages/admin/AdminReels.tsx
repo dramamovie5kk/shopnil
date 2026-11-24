@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useProducts } from '@/hooks/useProducts';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { homeReelsSetting, isReelSource, parseHomeReels, reelCover, reelPlayback, reelSources, type HomeReel } from '@/lib/homeReels';
 
@@ -16,6 +17,7 @@ function ReelEditor({ initial, onSave, saving }: {
   onSave: (value: string) => Promise<unknown>;
   saving: boolean;
 }) {
+  const { data: products = [], isLoading: productsLoading, isError: productsError } = useProducts({ compact: true });
   const [drafts, setDrafts] = useState<DraftReel[]>(initial);
   const [error, setError] = useState('');
   const update = (id: string, patch: Partial<DraftReel>) => {
@@ -73,6 +75,18 @@ function ReelEditor({ initial, onSave, saving }: {
               <div className="space-y-1">
                 <Label htmlFor={`${reel.id}-title`}>শিরোনাম</Label>
                 <Input id={`${reel.id}-title`} value={reel.title} maxLength={120} onChange={event => update(reel.id, { title: event.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`${reel.id}-product`}>রিলের পণ্য</Label>
+                <select id={`${reel.id}-product`} value={reel.productSlug || ''} disabled={productsLoading || productsError}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  onChange={event => update(reel.id, { productSlug: event.target.value })}>
+                  <option value="">{productsLoading ? 'পণ্য লোড হচ্ছে…' : 'পণ্য বেছে নিন'}</option>
+                  {reel.productSlug && !products.some(product => product.slug === reel.productSlug) &&
+                    <option value={reel.productSlug}>{reel.productSlug}</option>}
+                  {products.map(product => <option key={product.id} value={product.slug}>{product.name_bn || product.name}</option>)}
+                </select>
+                <p className="text-xs text-muted-foreground">{productsError ? 'পণ্যের তালিকা লোড হয়নি।' : 'এই পণ্যটি রিলের Shop Now ও Add to Cart বাটনে ব্যবহার হবে।'}</p>
               </div>
               <div className="space-y-1">
                 <Label htmlFor={`${reel.id}-cover`}>কভার ছবির লিংক (ঐচ্ছিক)</Label>

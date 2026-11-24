@@ -7,7 +7,7 @@ export const reelSources = {
 } as const;
 
 export type ReelSource = keyof typeof reelSources;
-export type HomeReel = { id: string; title: string; source: ReelSource; url: string; cover: string };
+export type HomeReel = { id: string; title: string; source: ReelSource; url: string; cover: string; productSlug?: string };
 
 export function isReelSource(value: unknown): value is ReelSource {
   return typeof value === 'string' && Object.prototype.hasOwnProperty.call(reelSources, value);
@@ -71,7 +71,8 @@ export function parseHomeReels(raw: string): HomeReel[] {
     return parsed.slice(0, 30).flatMap(item => {
       if (!item || typeof item.id !== 'string' || typeof item.title !== 'string' || !item.title.trim()
         || !isReelSource(item.source) || typeof item.url !== 'string' || !reelPlayback(item.source, item.url)) return [];
-      return [{ id: item.id, title: item.title.trim().slice(0, 120), source: item.source, url: item.url.trim(), cover: typeof item.cover === 'string' ? reelCover(item.cover) : '' }];
+      return [{ id: item.id, title: item.title.trim().slice(0, 120), source: item.source, url: item.url.trim(), cover: typeof item.cover === 'string' ? reelCover(item.cover) : '',
+        ...(typeof item.productSlug === 'string' && item.productSlug.trim() ? { productSlug: item.productSlug.trim().slice(0, 200) } : {}), }];
     });
   } catch {
     return [];

@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import AdminReels from '@/pages/admin/AdminReels';
@@ -9,6 +10,12 @@ vi.mock('@/hooks/useSiteSettings', () => ({
   useSiteSettings: () => ({ getSetting: () => settings.value, updateSetting: settings.save }),
 }));
 vi.mock('@/contexts/LanguageContext', () => ({ useLanguage: () => ({ language: 'en' }) }));
+const cart = vi.hoisted(() => ({ add: vi.fn(), product: { slug: 'demo-product', stock: 5, has_variations: false } }));
+vi.mock('@/hooks/useProducts', () => ({
+  useProducts: () => ({ data: [{ id: 'product-id', slug: 'demo-product', name: 'Demo product' }] }),
+  useProduct: (slug: string) => ({ data: slug ? cart.product : undefined }),
+}));
+vi.mock('@/contexts/CartContext', () => ({ useCart: () => ({ addToCart: cart.add }) }));
 vi.mock('@/components/admin/AdminLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => children }));
 afterEach(() => { cleanup(); settings.value = ''; settings.save.mockClear(); });
 
@@ -42,7 +49,7 @@ it('asks for the source first and saves the selected source with the video URL',
 
 it('loads an embedded player only after the visitor chooses a reel', async () => {
   settings.value = JSON.stringify([{ id: 'sample', source: 'youtube', url: 'https://youtu.be/AbcDe0123_-', title: 'Video preview', cover: '' }]);
-  render(<ReelsSection />);
+  render(<MemoryRouter><ReelsSection /></MemoryRouter>);
   expect(screen.queryByTitle('Video preview')).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Play Video preview' }));
   expect(await screen.findByTitle('Video preview')).toHaveAttribute('src', expect.stringContaining('youtube-nocookie.com/embed/AbcDe0123_-'));
@@ -55,15 +62,26 @@ it('keeps the player clean and navigates between reels with arrow keys', async (
     { id: 'a', title: 'First reel', source: 'mp4', url: 'https://example.test/a.mp4', cover: '' },
     { id: 'b', title: 'Second reel', source: 'mp4', url: 'https://example.test/b.mp4', cover: '' },
   ]);
-  render(<ReelsSection />);
+  render(<MemoryRouter><ReelsSection /></MemoryRouter>);
   fireEvent.click(screen.getByRole('button', { name: 'Play First reel' }));
   const dialog = await screen.findByRole('dialog');
   expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/a.mp4');
   expect(dialog.querySelector('video')).not.toHaveAttribute('controls');
-  expect(dialog.querySelector('a')).toBeNull();
+  expect(screen.getByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/products');
+  expect(screen.getByRole('button', { name: 'Add to Cart' })).toBeDisabled();
   expect(dialog.querySelector('h2')).toHaveClass('sr-only');
   fireEvent.keyDown(dialog, { key: 'ArrowRight' });
   expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/b.mp4');
   fireEvent.keyDown(dialog, { key: 'ArrowLeft' });
   expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/a.mp4');
+});
+
+
+it('connects both reel actions to the linked product', async () => {
+  settings.value = JSON.stringify([{ id: 'linked', source: 'mp4', url: 'https://example.test/demo.mp4', title: 'Linked reel', cover: '', productSlug: 'demo-product' }]);
+  render(<MemoryRouter><ReelsSection /></MemoryRouter>);
+  fireEvent.click(screen.getByRole('button', { name: 'Play Linked reel' }));
+  expect(await screen.findByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/product/demo-product');
+  fireEvent.click(screen.getByRole('button', { name: 'Add to Cart' }));
+  expect(cart.add).toHaveBeenCalledWith(cart.product);
 });

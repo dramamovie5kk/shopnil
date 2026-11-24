@@ -42,7 +42,7 @@ export default function ReelsSection() {
         }
       }}>
         {current && <Suspense fallback={null}>
-          <ReelViewer reel={current} multiple={reels.length > 1} english={language === 'en'}
+          <ReelViewer reel={current} close={() => setActive(null)} multiple={reels.length > 1} english={language === 'en'}
             navigate={step => setActive(index => index === null ? null : (index + step + reels.length) % reels.length)} />
         </Suspense>}
       </Dialog>
