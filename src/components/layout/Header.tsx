@@ -205,7 +205,7 @@ const Header = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                  {mobileMenuOpen ? <X className="size-[22px]" /> : <Menu className="size-[22px]" />}
                 </button>
                 <button
                   {...mobilePart('search')}
@@ -215,7 +215,7 @@ const Header = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <Search className="h-5 w-5 opacity-90" />
+                  <Search className="size-[22px] opacity-90" />
                 </button>
               </div>
               {/* Logo - center on mobile, left on desktop */}
@@ -321,7 +321,7 @@ const Header = () => {
                 {/* Account */}
                 <div className="relative group">
                   <button {...mobilePart('account')} className="flex items-center gap-2 p-2 rounded-xl max-lg:h-10 max-lg:w-10 max-lg:justify-center max-lg:border max-lg:border-white/20 transition-colors" style={{ color: headerTextColor }}>
-                    <User className="h-5 w-5 opacity-90" />
+                    <User className="size-[22px] shrink-0 opacity-90" />
                     <div className="text-left hidden sm:block">
                       <p className="text-xs opacity-70">{language === 'bn' ? 'আমার' : 'My'}</p>
                       <p className="text-sm font-medium -mt-0.5">{t('header.account')}</p>
@@ -391,7 +391,7 @@ const Header = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <ShoppingCart className="h-5 w-5 opacity-90" />
+                  <ShoppingCart className="size-[22px] opacity-90" />
                   {cartCount > 0 && (
                     <span
                       {...mobilePart('badge')}
