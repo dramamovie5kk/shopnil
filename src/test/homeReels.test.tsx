@@ -68,7 +68,7 @@ it('keeps the player clean and navigates between reels with arrow keys', async (
   expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/a.mp4');
   expect(dialog.querySelector('video')).not.toHaveAttribute('controls');
   expect(screen.getByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/shop');
-  expect(screen.getByRole('button', { name: 'অর্ডার করুন' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Order Now' })).toBeDisabled();
   expect(dialog.querySelector('h2')).toHaveClass('sr-only');
   fireEvent.keyDown(dialog, { key: 'ArrowRight' });
   expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/b.mp4');
@@ -82,5 +82,5 @@ it('opens the shop and routes orders to the linked product', async () => {
   render(<MemoryRouter><ReelsSection /></MemoryRouter>);
   fireEvent.click(screen.getByRole('button', { name: 'Play Linked reel' }));
   expect(await screen.findByRole('link', { name: 'Shop Now' })).toHaveAttribute('href', '/shop');
-  expect(screen.getByRole('link', { name: 'অর্ডার করুন' })).toHaveAttribute('href', '/product/demo-product');
+  expect(screen.getByRole('link', { name: 'Order Now' })).toHaveAttribute('href', '/product/demo-product');
 });

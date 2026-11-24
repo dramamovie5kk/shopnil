@@ -91,7 +91,7 @@ function ReelEditor({ initial, onSave, saving }: {
                     <option value={reel.productSlug}>{reel.productSlug}</option>}
                   {products.map(product => <option key={product.id} value={product.slug}>{product.name_bn || product.name}</option>)}
                 </select>
-                <p className="text-xs text-muted-foreground">{productsError ? 'পণ্যের তালিকা লোড হয়নি।' : 'অর্ডার করুন বাটনে এই পণ্যের ডিটেইলস পেজ খুলবে।'}</p>
+                <p className="text-xs text-muted-foreground">{productsError ? 'পণ্যের তালিকা লোড হয়নি।' : 'Order Now বাটনে এই পণ্যের ডিটেইলস পেজ খুলবে।'}</p>
               </div>
               <div className="space-y-1">
                 <Label htmlFor={`${reel.id}-cover`}>কভার ছবির লিংক (ঐচ্ছিক)</Label>

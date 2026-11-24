@@ -111,13 +111,13 @@ export default function ReelViewer({ reel, multiple, navigate, close, english }:
             </Link>
             {productPath ? (
               <Link to={productPath} onClick={close}
-                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white backdrop-blur-sm hover:bg-white/30">
-                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> অর্ডার করুন
+                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-slate-600 bg-slate-800 px-2 text-center text-xs font-bold text-white hover:bg-slate-700">
+                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> Order Now
               </Link>
             ) : (
               <button type="button" disabled title={english ? 'No product linked' : 'রিলের সঙ্গে পণ্য লিংক করা হয়নি'}
-                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-white/40 bg-white/20 px-2 text-center text-xs font-bold text-white opacity-60 backdrop-blur-sm">
-                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> অর্ডার করুন
+                className="flex min-h-10 items-center justify-center gap-1 rounded-full border border-slate-600 bg-slate-800 px-2 text-center text-xs font-bold text-slate-300">
+                <ShoppingCart className="size-4 shrink-0" aria-hidden="true" /> Order Now
               </button>
             )}
           </div>
