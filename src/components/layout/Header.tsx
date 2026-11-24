@@ -19,6 +19,8 @@ import { headerCustomizationCss, parseHeaderCustomization, type HeaderPart } fro
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
+const mobileHeaderIcon = { className: "size-[22px] shrink-0", strokeWidth: 2.35 } as const;
+
 const CartDrawer = lazy(() => import("./CartDrawer"));
 const SearchPopover = lazy(() => import("./SearchPopover"));
 
@@ -205,7 +207,7 @@ const Header = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  {mobileMenuOpen ? <X className="size-[22px]" /> : <Menu className="size-[22px]" />}
+                  {mobileMenuOpen ? <X {...mobileHeaderIcon} /> : <Menu {...mobileHeaderIcon} />}
                 </button>
                 <button
                   {...mobilePart('search')}
@@ -215,7 +217,7 @@ const Header = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <Search className="size-[22px] opacity-90" />
+                  <Search {...mobileHeaderIcon} />
                 </button>
               </div>
               {/* Logo - center on mobile, left on desktop */}
@@ -321,7 +323,7 @@ const Header = () => {
                 {/* Account */}
                 <div className="relative group">
                   <button {...mobilePart('account')} className="flex items-center gap-2 p-2 rounded-xl max-lg:h-10 max-lg:w-10 max-lg:justify-center max-lg:border max-lg:border-white/20 transition-colors" style={{ color: headerTextColor }}>
-                    <User className="size-[22px] shrink-0 opacity-90" />
+                    <User {...mobileHeaderIcon} />
                     <div className="text-left hidden sm:block">
                       <p className="text-xs opacity-70">{language === 'bn' ? 'আমার' : 'My'}</p>
                       <p className="text-sm font-medium -mt-0.5">{t('header.account')}</p>
@@ -391,7 +393,7 @@ const Header = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverStyle}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <ShoppingCart className="size-[22px] opacity-90" />
+                  <ShoppingCart {...mobileHeaderIcon} />
                   {cartCount > 0 && (
                     <span
                       {...mobilePart('badge')}
