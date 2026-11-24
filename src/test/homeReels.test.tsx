@@ -14,7 +14,7 @@ afterEach(() => { cleanup(); settings.value = ''; settings.save.mockClear(); });
 
 it('accepts supported video links and rejects incorrect providers or protocols', () => {
   expect(reelPlayback('youtube', 'https://youtube.com/shorts/AbcDe0123_-')).toEqual({
-    kind: 'embed', url: 'https://www.youtube-nocookie.com/embed/AbcDe0123_-?autoplay=1&rel=0',
+    kind: 'embed', url: 'https://www.youtube-nocookie.com/embed/AbcDe0123_-?autoplay=1&rel=0&controls=0&playsinline=1',
   });
   expect(reelPlayback('facebook', 'https://www.facebook.com/reel/12345')?.url).toContain('facebook.com/plugins/video.php');
   expect(reelPlayback('facebook', 'https://fb.watch/abc/')?.kind).toBe('external');
@@ -48,4 +48,22 @@ it('loads an embedded player only after the visitor chooses a reel', async () =>
   expect(await screen.findByTitle('Video preview')).toHaveAttribute('src', expect.stringContaining('youtube-nocookie.com/embed/AbcDe0123_-'));
   fireEvent.click(screen.getByRole('button', { name: 'Close' }));
   await waitFor(() => expect(screen.queryByTitle('Video preview')).not.toBeInTheDocument());
+});
+
+it('keeps the player clean and navigates between reels with arrow keys', async () => {
+  settings.value = JSON.stringify([
+    { id: 'a', title: 'First reel', source: 'mp4', url: 'https://example.test/a.mp4', cover: '' },
+    { id: 'b', title: 'Second reel', source: 'mp4', url: 'https://example.test/b.mp4', cover: '' },
+  ]);
+  render(<ReelsSection />);
+  fireEvent.click(screen.getByRole('button', { name: 'Play First reel' }));
+  const dialog = await screen.findByRole('dialog');
+  expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/a.mp4');
+  expect(dialog.querySelector('video')).not.toHaveAttribute('controls');
+  expect(dialog.querySelector('a')).toBeNull();
+  expect(dialog.querySelector('h2')).toHaveClass('sr-only');
+  fireEvent.keyDown(dialog, { key: 'ArrowRight' });
+  expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/b.mp4');
+  fireEvent.keyDown(dialog, { key: 'ArrowLeft' });
+  expect(dialog.querySelector('video')).toHaveAttribute('src', 'https://example.test/a.mp4');
 });

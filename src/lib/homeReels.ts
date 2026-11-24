@@ -46,7 +46,7 @@ export function reelPlayback(source: ReelSource, value: string): { kind: 'video'
       ? pathname.split('/')[1]
       : ['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(hostname)
         ? searchParams.get('v') || /^\/(?:shorts|embed|live)\/([\w-]+)/.exec(pathname)?.[1] : undefined;
-    return id && /^[\w-]{11}$/.test(id) ? { kind: 'embed', url: `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0` } : null;
+    return id && /^[\w-]{11}$/.test(id) ? { kind: 'embed', url: `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&controls=0&playsinline=1` } : null;
   }
   if (source === 'drive') {
     if (hostname !== 'drive.google.com') return null;
