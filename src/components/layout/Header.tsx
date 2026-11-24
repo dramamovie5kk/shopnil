@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { 
   Search, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight,
   Smartphone, Laptop, Headphones, Watch, Camera, Gamepad2, 
-  Phone, Mail, LogOut, LayoutDashboard, Heart
+  Phone, Mail, LogOut, LayoutDashboard, Heart, LayoutGrid, ShoppingBag
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -17,7 +17,10 @@ import { HeaderMarquee } from "./HeaderMarquee";
 import DesktopHeader from "./DesktopHeader";
 import { headerCustomizationCss, parseHeaderCustomization, type HeaderPart } from "@/lib/headerCustomization";
 import LanguageSwitcher from "./LanguageSwitcher";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { imageVariant } from "@/lib/responsiveImage";
 
 const mobileHeaderIcon = { className: "size-[22px] shrink-0", strokeWidth: 2.35 } as const;
 
@@ -58,7 +61,6 @@ const Header = () => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const [expandedMobileCategory, setExpandedMobileCategory] = useState<string | null>(null);
-  const [mobileTab, setMobileTab] = useState<"category" | "menu">("category");
   
   const { user, signOut } = useAuth();
   const { cartCount, isDrawerOpen, setIsDrawerOpen } = useCart();
@@ -74,7 +76,6 @@ const Header = () => {
   
 
   const siteName = getSetting("site_name", "GadgetBD");
-  const siteTagline = getSetting("site_tagline", "প্রিমিয়াম গ্যাজেট শপ");
   const siteLogo = getSetting("site_logo_text", "G");
   const siteLogoUrl = customization.mobile.logo?.imageUrl || getSetting("site_logo_url", "");
   const contactPhone = getSetting("footer_phone", "০১৭XX-XXXXXX");
@@ -458,219 +459,161 @@ const Header = () => {
           </div>
         )}
 
-        {/* Mobile Menu */}
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <Sheet open={mobileMenuOpen} onOpenChange={open => { setMobileMenuOpen(open); if (!open) setExpandedMobileCategory(null); }}>
           <SheetContent
             side="left"
+            showClose={false}
             data-header-device={menuDevice}
             data-header-part="dropdown"
             aria-describedby={undefined}
             onCloseAutoFocus={event => { event.preventDefault(); menuTriggerRef.current?.focus(); }}
-            className=" p-0 w-[85%] max-w-[340px] lg:w-[400px] lg:max-w-[400px] overflow-y-auto border-r bg-background text-foreground"
+            className="flex w-[82vw] max-w-[365px] flex-col gap-0 overflow-hidden border-r bg-background p-0 text-foreground lg:w-[390px] lg:max-w-[390px]"
           >
-            <SheetTitle className="sr-only">{language === 'en' ? 'Menu and categories' : 'মেনু ও ক্যাটেগরি'}</SheetTitle>
-            {/* Logo header strip — matches main header color */}
-            <div
-              className="px-4 py-4 border-b"
-              style={{
-                backgroundColor: menuDevice === 'desktop' ? '#ffffff' : (topBarGradFrom && topBarGradTo) ? undefined : (headerBgColor || undefined),
-                backgroundImage: menuDevice === 'desktop' ? undefined : (topBarGradFrom && topBarGradTo)
-                  ? `linear-gradient(${topBarGradDir}, ${topBarGradFrom}, ${topBarGradTo})`
-                  : undefined,
-                color: menuDevice === 'desktop' ? '#07391E' : headerTextColor,
-              }}
-            >
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3"
-              >
-                {(customization[menuDevice].logo?.imageUrl || getSetting('site_logo_url')) ? (
-                  <img
-                    src={(customization[menuDevice].logo?.imageUrl || getSetting('site_logo_url'))}
-                    alt={siteName}
-                    style={{ height: `${logoSize}px` }}
-                    className="w-auto object-contain"
-                  />
-                ) : (
-                  <>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg bg-white/15 border border-white/20">
-                      {siteLogo}
-                    </div>
-                    <div className="leading-tight">
-                      <p className="font-bold text-base">{siteName}</p>
-                      <p className="text-xs opacity-80">{siteTagline}</p>
-                    </div>
-                  </>
-                )}
-              </Link>
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b bg-background px-4 py-3.5">
+              <SheetTitle className="truncate text-base font-bold">
+                {language === 'en' ? 'Browse Shopnil' : 'শপনিল ঘুরে দেখুন'}
+              </SheetTitle>
+              <SheetClose className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-muted px-3 text-sm font-medium hover:bg-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                <X className="size-4" aria-hidden="true" />{language === 'en' ? 'Close' : 'বন্ধ করুন'}
+              </SheetClose>
             </div>
+            <Tabs defaultValue="category" className="flex min-h-0 flex-1 flex-col">
+              <TabsList aria-label={language === 'en' ? 'Browse options' : 'ব্রাউজ করার ধরন'} className="mx-3 my-2 grid h-auto shrink-0 grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+                <TabsTrigger value="category" className="gap-2 rounded-lg py-2.5 data-[state=active]:text-primary">
+                  <LayoutGrid className="size-4" aria-hidden="true" />
+                  {language === 'en' ? 'Categories' : 'ক্যাটেগরি'}
+                </TabsTrigger>
+                <TabsTrigger value="menu" className="gap-2 rounded-lg py-2.5 data-[state=active]:text-primary">
+                  <Menu className="size-4" aria-hidden="true" />
+                  {language === 'en' ? 'Menu' : 'মেনু'}
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="p-4">
-                {/* Mobile Search */}
-                <button
-                  onClick={() => {
-                    setIsSearchOpen(true);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-muted rounded-xl text-muted-foreground mb-4 border border-border"
-                >
-                  <Search className="h-5 w-5" />
-                  <span>{t('header.search_products')}</span>
-                </button>
-
-                {/* Tabs: Category / Menu */}
-                <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl mb-3">
-                  <button
-                    onClick={() => setMobileTab("category")}
-                    className={`py-2 text-sm font-medium rounded-lg transition-colors ${mobileTab === "category" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
-                  >
-                    {language === 'bn' ? 'ক্যাটাগরি' : 'Category'}
-                  </button>
-                  <button
-                    onClick={() => setMobileTab("menu")}
-                    className={`py-2 text-sm font-medium rounded-lg transition-colors ${mobileTab === "menu" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"}`}
-                  >
-                    {language === 'bn' ? 'মেনু' : 'Menu'}
-                  </button>
-                </div>
-
-                {/* Categories with subcategories */}
-                {mobileTab === "category" && (
-                <div className="space-y-1 mb-4">
-                  {parentCategories.map((cat) => {
+              <TabsContent value="category" className="mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
+                <ul className="divide-y divide-border rounded-xl border border-border">
+                  {parentCategories.map(cat => {
                     const subs = getSubcategories(cat.id);
                     const isExpanded = expandedMobileCategory === cat.id;
-                    
+                    const name = language === 'en' ? cat.name : cat.name_bn;
+                    const subId = `header-subcategories-${cat.id}`;
                     return (
-                      <div key={cat.id}>
-                        {subs.length > 0 ? (
-                          <>
-                            <button
-                              onClick={() => setExpandedMobileCategory(isExpanded ? null : cat.id)}
-                              className="w-full flex items-center justify-between px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
-                            >
-                              <span>{language === 'en' ? cat.name : cat.name_bn}</span>
-                              <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
-                            </button>
-                            {isExpanded && (
-                              <div className="overflow-hidden motion-safe:animate-in motion-safe:fade-in duration-200">
-                                  <div className="pl-4 space-y-0.5">
-                                    <Link
-                                      to={`/products?category=${cat.slug}`}
-                                      onClick={() => setMobileMenuOpen(false)}
-                                      className="block px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors text-sm"
-                                    >
-                                      {language === 'bn' ? 'সকল' : 'All'} {language === 'en' ? cat.name : cat.name_bn}
-                                    </Link>
-                                    {subs.map((sub) => (
-                                      <Link
-                                        key={sub.id}
-                                        to={`/products?category=${sub.slug}`}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="block px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors text-sm"
-                                      >
-                                        {language === 'en' ? sub.name : sub.name_bn}
-                                      </Link>
-                                    ))}
-                                  </div>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <Link
-                            to={`/products?category=${cat.slug}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
-                          >
-                            {language === 'en' ? cat.name : cat.name_bn}
+                      <li key={cat.id}>
+                        <div className="flex items-stretch">
+                          <Link to={`/products?category=${encodeURIComponent(cat.slug)}`} onClick={() => setMobileMenuOpen(false)}
+                            className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-semibold hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                            <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-muted-foreground">
+                              {cat.image_url ? <img src={imageVariant(cat.image_url, 384)} alt="" loading="lazy" decoding="async"
+                                className="h-full w-full object-contain" /> : <ShoppingBag className="size-4" aria-hidden="true" />}
+                            </span>
+                            <span className="min-w-0 break-words">{name}</span>
                           </Link>
+                          {subs.length > 0 && (
+                            <button type="button" aria-expanded={isExpanded} aria-controls={subId}
+                              aria-label={language === 'en' ? `Subcategories of ${name}` : `${name} এর সাবক্যাটেগরি`}
+                              onClick={() => setExpandedMobileCategory(isExpanded ? null : cat.id)}
+                              className="my-1.5 grid w-11 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                              <ChevronRight className={`size-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} aria-hidden="true" />
+                            </button>
+                          )}
+                        </div>
+                        {subs.length > 0 && (
+                          <ul id={subId} hidden={!isExpanded} className="border-t bg-muted/40 py-1 pl-8 pr-2">
+                            {subs.map(sub => (
+                              <li key={sub.id}>
+                                <Link to={`/products?category=${encodeURIComponent(sub.slug)}`} onClick={() => setMobileMenuOpen(false)}
+                                  className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-background hover:text-foreground">
+                                  {language === 'en' ? sub.name : sub.name_bn}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                      </div>
+                      </li>
                     );
                   })}
-                </div>
-                )}
+                </ul>
+              </TabsContent>
 
-                {/* Menu Tab: Quick Links + Pages + Account */}
-                {mobileTab === "menu" && (
-                <div className="space-y-1">
-                  <Link
-                    to="/products"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
-                  >
-                    {t('header.all_products')}
-                  </Link>
-                  <Link
-                    to="/products?featured=true"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-3 text-orange-500 hover:bg-muted rounded-xl transition-colors"
-                  >
-                    {t('header.hot_deal')}
-                  </Link>
+              <TabsContent value="menu" className="mt-0 min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain px-3 pb-4">
+                <button type="button" onClick={() => { setIsSearchOpen(true); setMobileMenuOpen(false); }}
+                  className="mb-2 flex w-full items-center gap-3 rounded-xl border border-border bg-muted px-3 py-3 text-sm text-muted-foreground">
+                  <Search className="size-4" aria-hidden="true" />{t('header.search_products')}
+                </button>
+                <Link
+                  to="/products"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
+                >
+                  {t('header.all_products')}
+                </Link>
+                <Link
+                  to="/products?featured=true"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-3 text-orange-500 hover:bg-muted rounded-xl transition-colors"
+                >
+                  {t('header.hot_deal')}
+                </Link>
 
-                  {pages.filter(p => p.is_published).map((page) => (
+                {pages.filter(p => p.is_published).map((page) => (
+                  <Link
+                    key={page.id}
+                    to={`/${page.slug}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
+                  >
+                    {page.title}
+                  </Link>
+                ))}
+
+                <div className="border-t border-border pt-2 mt-2" />
+                {user ? (
+                  <>
                     <Link
-                      key={page.id}
-                      to={`/${page.slug}`}
+                      to={getDashboardPath()}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
+                      className="flex items-center gap-3 px-3 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
                     >
-                      {page.title}
+                      <LayoutDashboard className="h-5 w-5 opacity-60" />
+                      {isAdmin ? t('header.admin_dashboard') : isModerator ? t('header.moderator_dashboard') : t('header.my_dashboard')}
                     </Link>
-                  ))}
-
-                  <div className="border-t border-border pt-2 mt-2" />
-                  {user ? (
-                    <>
-                      <Link
-                        to={getDashboardPath()}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
-                      >
-                        <LayoutDashboard className="h-5 w-5 opacity-60" />
-                        {isAdmin ? t('header.admin_dashboard') : isModerator ? t('header.moderator_dashboard') : t('header.my_dashboard')}
-                      </Link>
-                      <Link
-                        to="/orders"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
-                      >
-                        {t('header.my_orders')}
-                      </Link>
-                      <button
-                        onClick={() => {
-                          handleSignOut();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-destructive hover:bg-muted rounded-xl transition-colors text-left"
-                      >
-                        <LogOut className="h-5 w-5" />
-                        {t('header.logout')}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        to="/login"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
-                      >
-                        {t('header.login')}
-                      </Link>
-                      <Link
-                        to="/register"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-4 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
-                      >
-                        {t('header.register')}
-                      </Link>
-                    </>
-                  )}
-                </div>
+                    <Link
+                      to="/orders"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
+                    >
+                      {t('header.my_orders')}
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-3 text-destructive hover:bg-muted rounded-xl transition-colors text-left"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      {t('header.logout')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
+                    >
+                      {t('header.login')}
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-3 text-foreground hover:bg-muted rounded-xl transition-colors"
+                    >
+                      {t('header.register')}
+                    </Link>
+                  </>
                 )}
-            </div>
+              </TabsContent>
+            </Tabs>
           </SheetContent>
         </Sheet>
       </header>
