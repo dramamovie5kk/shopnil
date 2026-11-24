@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -7,13 +8,16 @@ import { parseHomeReels, reelPlayback } from '@/lib/homeReels';
 
 const settings = vi.hoisted(() => ({ value: '', save: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('@/hooks/useSiteSettings', () => ({
-  useSiteSettings: () => ({ getSetting: () => settings.value, updateSetting: settings.save }),
+  useSiteSettings: () => ({ getSetting: () => settings.value }),
 }));
 vi.mock('@/contexts/LanguageContext', () => ({ useLanguage: () => ({ language: 'en' }) }));
 vi.mock('@/hooks/useProducts', () => ({
   useProductOptions: () => ({ data: [{ id: 'product-id', slug: 'demo-product', name: 'Demo product' }] }),
 }));
-vi.mock('@/components/admin/AdminLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => children }));
+vi.mock('@/components/admin/AdminLayout', () => ({
+  default: ({ children, actions }: { children: React.ReactNode; actions: React.ReactNode }) => <>{actions}{children}</>,
+}));
+vi.mock('@/lib/saveHomeReel', () => ({ saveHomeReel: settings.save }));
 afterEach(() => { cleanup(); settings.value = ''; settings.save.mockClear(); });
 
 it('accepts supported video links and rejects incorrect providers or protocols', () => {
@@ -31,20 +35,23 @@ it('accepts supported video links and rejects incorrect providers or protocols',
 });
 
 it('asks for the source first and saves the selected source with the video URL', async () => {
-  render(<AdminReels />);
+  settings.value = JSON.stringify([{ id: 'previous', title: 'Previously saved reel', source: 'mp4', url: 'https://example.test/old.mp4', cover: '' }]);
+  render(<QueryClientProvider client={new QueryClient()}><AdminReels /></QueryClientProvider>);
+  expect(screen.getByText('Previously saved reel')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'রিল যোগ করুন' }));
   expect(screen.getByLabelText('ভিডিও লিংক')).toBeDisabled();
   fireEvent.change(screen.getByLabelText('ভিডিওর উৎস'), { target: { value: 'mp4' } });
   fireEvent.change(screen.getByLabelText('ভিডিও লিংক'), { target: { value: 'https://example.test/demo.mp4' } });
   fireEvent.change(screen.getByLabelText('শিরোনাম'), { target: { value: 'Demo reel' } });
-  fireEvent.click(screen.getByRole('button', { name: 'রিলস সেভ করুন' }));
+  fireEvent.click(screen.getByRole('button', { name: 'রিল সেভ করুন' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('তালিকা থেকে একটি পণ্য বেছে নিন');
   fireEvent.change(screen.getByLabelText('রিলের পণ্য'), { target: { value: 'demo-product' } });
-  fireEvent.click(screen.getByRole('button', { name: 'রিলস সেভ করুন' }));
+  fireEvent.click(screen.getByRole('button', { name: 'রিল সেভ করুন' }));
   await waitFor(() => expect(settings.save).toHaveBeenCalledOnce());
-  const [key, raw] = settings.save.mock.calls[0];
-  expect(key).toBe('home_reels');
-  expect(parseHomeReels(raw)).toEqual([expect.objectContaining({ title: 'Demo reel', source: 'mp4', productSlug: 'demo-product', url: 'https://example.test/demo.mp4' })]);
+  expect(settings.save).toHaveBeenCalledWith(null, expect.objectContaining({
+    title: 'Demo reel', source: 'mp4', productSlug: 'demo-product', url: 'https://example.test/demo.mp4',
+  }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 });
 
 it('loads an embedded player only after the visitor chooses a reel', async () => {

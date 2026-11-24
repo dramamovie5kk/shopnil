@@ -1,127 +1,201 @@
-import { useState } from 'react';
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Clapperboard, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProductOptions } from '@/hooks/useProducts';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { api } from '@/integrations/cloudflare/client';
 import { homeReelsSetting, isReelSource, parseHomeReels, reelCover, reelPlayback, reelSources, type HomeReel } from '@/lib/homeReels';
+import { imageVariant } from '@/lib/responsiveImage';
+import { saveHomeReel } from '@/lib/saveHomeReel';
 
-type DraftReel = Omit<HomeReel, 'source'> & { source: HomeReel['source'] | '' };
+type Draft = Omit<HomeReel, 'source'> & { source: HomeReel['source'] | '' };
+const fieldClass = 'flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm';
 
-function ReelEditor({ initial, onSave, saving }: {
-  initial: HomeReel[];
-  onSave: (value: string) => Promise<unknown>;
+function ReelEditor({ original, onSave, onClose, saving }: {
+  original: HomeReel | null;
+  onSave: (reel: HomeReel) => Promise<void>;
+  onClose: () => void;
   saving: boolean;
 }) {
-  const { data: products = [], isLoading: productsLoading, isError: productsError } = useProductOptions();
-  const [drafts, setDrafts] = useState<DraftReel[]>(initial);
+  const { data: products = [], isLoading, isError } = useProductOptions();
+  const [draft, setDraft] = useState<Draft>(() => original || { id: crypto.randomUUID(), title: '', source: '', url: '', cover: '' });
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  const update = (id: string, patch: Partial<DraftReel>) => {
-    setDrafts(current => current.map(reel => reel.id === id ? { ...reel, ...patch } : reel));
+  const busy = saving || uploading;
+  const update = (patch: Partial<Draft>) => {
+    setDraft(current => ({ ...current, ...patch }));
     setError('');
   };
 
   const save = async () => {
-    const invalid = drafts.findIndex(reel => !reel.title.trim() || !reel.source || !reelPlayback(reel.source, reel.url)
-      || (reel.cover.trim() && !reelCover(reel.cover)));
-    if (invalid >= 0) {
-      setError(`রিল ${(invalid + 1).toLocaleString('bn-BD')}: শিরোনাম, নির্বাচিত উৎসের ভিডিও লিংক এবং দেওয়া থাকলে কভার লিংক যাচাই করুন।`);
+    if (busy) return;
+    const { source, title, productSlug } = draft;
+    const cover = reelCover(draft.cover);
+    let url = draft.url.trim();
+    if (!title.trim() || !source || (!file && !reelPlayback(source, url)) || (draft.cover.trim() && !cover)) {
+      setError('শিরোনাম, নির্বাচিত উৎসের ভিডিও এবং দেওয়া থাকলে কভার লিংক যাচাই করুন।');
       return;
     }
-    const unlinked = drafts.findIndex(reel => !products.some(product => product.slug === reel.productSlug));
-    if (unlinked >= 0) {
-      setError(`রিল ${(unlinked + 1).toLocaleString('bn-BD')}: তালিকা থেকে একটি পণ্য বেছে নিন।`);
+    if (!products.some(product => product.slug === productSlug)) {
+      setError('তালিকা থেকে একটি পণ্য বেছে নিন।');
       return;
     }
+    if (file && (!/\.mp4$/i.test(file.name) || !file.size || file.size > 20 * 1024 * 1024)) {
+      setError('সর্বোচ্চ ২০ MB আকারের MP4 ফাইল বেছে নিন।');
+      return;
+    }
+    setError('');
     try {
-      await onSave(JSON.stringify(drafts.map(reel => ({
-        ...reel, title: reel.title.trim(), url: reel.url.trim(), cover: reelCover(reel.cover),
-      }))));
-      toast.success('রিলস সেভ হয়েছে।');
-    } catch {
-      setError('রিলস সেভ করা যায়নি। আবার চেষ্টা করুন।');
+      if (file) {
+        setUploading(true);
+        const path = `reels/${crypto.randomUUID()}.mp4`;
+        const { error: uploadError } = await api.storage.from('products').upload(path, file);
+        if (uploadError) throw new Error('MP4 আপলোড হয়নি। ফাইলটি যাচাই করে আবার চেষ্টা করুন।');
+        url = '/api/media/products/' + path;
+        setFile(null);
+        if (fileInput.current) fileInput.current.value = '';
+        update({ url });
+      }
+      await onSave({ ...draft, source, title: title.trim(), url, cover, productSlug });
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'রিল সেভ করা যায়নি। আবার চেষ্টা করুন।');
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
-    <form className="max-w-3xl space-y-4" onSubmit={event => { event.preventDefault(); void save(); }}>
-      <fieldset disabled={saving} className="space-y-4">
-        {!drafts.length && <p className="text-sm text-muted-foreground">এখনো কোনো রিল যোগ করা হয়নি।</p>}
-        {drafts.map((reel, index) => (
-          <Card key={reel.id}>
-            <CardContent className="space-y-3 p-4">
-              <div className="flex justify-between gap-2">
-                <h2 className="font-semibold">রিল {(index + 1).toLocaleString('bn-BD')}</h2>
-                <Button type="button" variant="ghost" size="icon" aria-label={`রিল ${index + 1} সরান`}
-                  onClick={() => { setDrafts(current => current.filter(item => item.id !== reel.id)); setError(''); }}>
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${reel.id}-source`}>ভিডিওর উৎস</Label>
-                <select id={`${reel.id}-source`} value={reel.source}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  onChange={event => update(reel.id, { source: isReelSource(event.target.value) ? event.target.value : '', url: '' })}>
-                  <option value="">উৎস বেছে নিন</option>
-                  {Object.entries(reelSources).map(([source, config]) => <option key={source} value={source}>{config.label}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${reel.id}-url`}>ভিডিও লিংক</Label>
-                <Input id={`${reel.id}-url`} dir="ltr" inputMode="url" maxLength={2000}
-                  value={reel.url} disabled={!reel.source} placeholder={reel.source ? reelSources[reel.source].example : 'আগে ভিডিওর উৎস বেছে নিন'}
-                  onChange={event => update(reel.id, { url: event.target.value })} />
-                {reel.source === 'drive' && <p className="text-xs text-muted-foreground">ড্রাইভ ফাইলে লিংক থাকা যে কেউ যেন ভিডিও দেখতে পারে, সেই অনুমতি দিন।</p>}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${reel.id}-title`}>শিরোনাম</Label>
-                <Input id={`${reel.id}-title`} value={reel.title} maxLength={120} onChange={event => update(reel.id, { title: event.target.value })} />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${reel.id}-product`}>রিলের পণ্য</Label>
-                <select id={`${reel.id}-product`} value={reel.productSlug || ''} disabled={productsLoading || productsError}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  onChange={event => update(reel.id, { productSlug: event.target.value })}>
-                  <option value="">{productsLoading ? 'পণ্য লোড হচ্ছে…' : 'পণ্য বেছে নিন'}</option>
-                  {reel.productSlug && !products.some(product => product.slug === reel.productSlug) &&
-                    <option value={reel.productSlug}>{reel.productSlug}</option>}
-                  {products.map(product => <option key={product.id} value={product.slug}>{product.name_bn || product.name}</option>)}
-                </select>
-                <p className="text-xs text-muted-foreground">{productsError ? 'পণ্যের তালিকা লোড হয়নি।' : 'Order Now বাটনে এই পণ্যের ডিটেইলস পেজ খুলবে।'}</p>
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor={`${reel.id}-cover`}>কভার ছবির লিংক (ঐচ্ছিক)</Label>
-                <Input id={`${reel.id}-cover`} dir="ltr" inputMode="url" maxLength={2000} value={reel.cover}
-                  onChange={event => update(reel.id, { cover: event.target.value })} />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" disabled={drafts.length >= 30}
-            onClick={() => setDrafts(current => [...current, { id: crypto.randomUUID(), source: '', url: '', title: '', cover: '' }])}>
-            <Plus className="mr-2 size-4" />রিল যোগ করুন
-          </Button>
-          <Button type="submit" disabled={saving || productsLoading || productsError}>
-            <Save className="mr-2 size-4" />{saving ? 'সেভ হচ্ছে…' : 'রিলস সেভ করুন'}
-          </Button>
-        </div>
-      </fieldset>
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    </form>
+    <DialogContent className={`max-h-[92dvh] w-[calc(100%-1rem)] max-w-xl overflow-y-auto rounded-xl ${busy ? "[&>button]:hidden" : ""}`}
+      onEscapeKeyDown={event => { if (busy) event.preventDefault(); }}
+      onInteractOutside={event => { if (busy) event.preventDefault(); }}>
+      <DialogHeader>
+        <DialogTitle>{original ? 'রিল সম্পাদনা' : 'নতুন রিল যোগ করুন'}</DialogTitle>
+        <DialogDescription>ভিডিওর উৎস ও পণ্য বেছে এই রিলটি সেভ করুন।</DialogDescription>
+      </DialogHeader>
+      <form className="space-y-4" onSubmit={event => { event.preventDefault(); void save(); }}>
+        <fieldset disabled={busy} className="space-y-3">
+          <div className="space-y-1">
+            <Label htmlFor="reel-source">ভিডিওর উৎস</Label>
+            <select id="reel-source" value={draft.source} className={fieldClass}
+              onChange={event => { setFile(null); update({ source: isReelSource(event.target.value) ? event.target.value : '', url: '' }); }}>
+              <option value="">উৎস বেছে নিন</option>
+              {Object.entries(reelSources).map(([source, config]) => <option key={source} value={source}>{config.label}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="reel-url">ভিডিও লিংক</Label>
+            <Input id="reel-url" dir="ltr" inputMode="url" maxLength={2000} value={draft.url} disabled={!draft.source || !!file}
+              placeholder={draft.source ? reelSources[draft.source].example : 'আগে ভিডিওর উৎস বেছে নিন'} onChange={event => update({ url: event.target.value })} />
+            {draft.source === 'drive' && <p className="text-xs text-muted-foreground">লিংক থাকা যে কেউ যেন ড্রাইভের ভিডিওটি দেখতে পারে, সেই অনুমতি দিন।</p>}
+          </div>
+          {draft.source === 'mp4' && <div className="space-y-1">
+            <Label htmlFor="reel-file">অথবা MP4 ফাইল দিন (সর্বোচ্চ ২০ MB)</Label>
+            <Input id="reel-file" ref={fileInput} type="file" accept="video/mp4,.mp4" onChange={event => { setFile(event.target.files?.[0] || null); setError(''); }} />
+          </div>}
+          <div className="space-y-1">
+            <Label htmlFor="reel-title">শিরোনাম</Label>
+            <Input id="reel-title" value={draft.title} maxLength={120} onChange={event => update({ title: event.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="reel-product">রিলের পণ্য</Label>
+            <select id="reel-product" className={fieldClass} value={draft.productSlug || ''} disabled={isLoading || isError}
+              onChange={event => update({ productSlug: event.target.value })}>
+              <option value="">{isLoading ? 'পণ্য লোড হচ্ছে…' : 'পণ্য বেছে নিন'}</option>
+              {products.map(product => <option key={product.id} value={product.slug}>{product.name_bn || product.name}</option>)}
+            </select>
+            {isError && <p role="alert" className="text-xs text-destructive">পণ্যের তালিকা লোড হয়নি।</p>}
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="reel-cover">কভার ছবির লিংক (ঐচ্ছিক)</Label>
+            <Input id="reel-cover" dir="ltr" inputMode="url" maxLength={2000} value={draft.cover} onChange={event => update({ cover: event.target.value })} />
+          </div>
+        </fieldset>
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        <DialogFooter>
+          <Button type="button" variant="outline" disabled={busy} onClick={onClose}>বাতিল</Button>
+          <Button type="submit" disabled={busy || isLoading || isError}>{uploading ? 'আপলোড হচ্ছে…' : saving ? 'সেভ হচ্ছে…' : 'রিল সেভ করুন'}</Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
   );
 }
 
 export default function AdminReels() {
-  const { getSetting, isLoading, isError, updateSetting, isUpdating } = useSiteSettings();
+  const { getSetting, isLoading, isError } = useSiteSettings();
+  const queryClient = useQueryClient();
+  const reels = parseHomeReels(getSetting(homeReelsSetting));
+  const [editor, setEditor] = useState<{ original: HomeReel | null } | null>(null);
+  const [removing, setRemoving] = useState<HomeReel | null>(null);
+  const [saving, setSaving] = useState(false);
+  const persist = async (original: HomeReel | null, next: HomeReel | null) => {
+    setSaving(true);
+    try {
+      await saveHomeReel(original, next);
+      await queryClient.invalidateQueries({ queryKey: ['site-settings'] });
+      toast.success(next ? 'রিল সেভ হয়েছে।' : 'রিল সরানো হয়েছে।');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <AdminLayout title="রিলস" subtitle="হোমপেজের টপ ক্যাটেগরির নিচে দেখানোর জন্য রিল যোগ করুন।">
-      {isLoading ? <p role="status">রিলস লোড হচ্ছে…</p> : isError ? <p role="alert">রিলসের সেটিংস লোড করা যায়নি। পেজটি রিফ্রেশ করুন।</p>
-        : <ReelEditor initial={parseHomeReels(getSetting(homeReelsSetting))} onSave={value => updateSetting(homeReelsSetting, value)} saving={isUpdating} />}
+    <AdminLayout title="রিলস" subtitle="হোমপেজে দেখানোর রিলগুলো পরিচালনা করুন।" actions={
+      <Button disabled={isLoading || isError || reels.length >= 30} onClick={() => setEditor({ original: null })}>
+        <Plus className="mr-2 size-4" />রিল যোগ করুন
+      </Button>
+    }>
+      {isLoading ? <p role="status">রিলস লোড হচ্ছে…</p> : isError ? <p role="alert">রিলস লোড করা যায়নি। পেজটি রিফ্রেশ করুন।</p>
+        : reels.length ? <div className="grid gap-3 lg:grid-cols-2">
+          {reels.map(reel => (
+            <Card key={reel.id}>
+              <CardContent className="flex items-center gap-3 p-3">
+                <div className="grid h-16 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-muted-foreground">
+                  {reel.cover ? <img src={imageVariant(reel.cover, 384)} alt="" loading="lazy" className="h-full w-full object-cover" /> : <Clapperboard className="size-5" aria-hidden="true" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate text-sm font-semibold">{reel.title}</h2>
+                  <p className="truncate text-xs text-muted-foreground">{reelSources[reel.source].label}{reel.productSlug ? '' : ' · পণ্য বেছে নিন'}</p>
+                </div>
+                <Button variant="outline" size="icon" aria-label={`${reel.title} সম্পাদনা করুন`} onClick={() => setEditor({ original: reel })}>
+                  <Pencil className="size-4" />
+                </Button>
+                <Button variant="ghost" size="icon" aria-label={`${reel.title} সরান`} onClick={() => setRemoving(reel)}>
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div> : <Card><CardContent className="p-6 text-sm text-muted-foreground">এখনো কোনো রিল যোগ করা হয়নি।</CardContent></Card>}
+      <Dialog open={!!editor} onOpenChange={open => { if (!open && !saving) setEditor(null); }}>
+        {editor && <ReelEditor original={editor.original} saving={saving} onClose={() => setEditor(null)}
+          onSave={async next => { await persist(editor.original, next); setEditor(null); }} />}
+      </Dialog>
+      <AlertDialog open={!!removing} onOpenChange={open => { if (!open && !saving) setRemoving(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>রিলটি সরাবেন?</AlertDialogTitle>
+            <AlertDialogDescription>{removing?.title} হোমপেজ থেকে সরানো হবে।</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>বাতিল</AlertDialogCancel>
+            <Button variant="destructive" disabled={saving} onClick={async () => {
+              if (!removing) return;
+              try { await persist(removing, null); setRemoving(null); }
+              catch { toast.error('রিলটি সরানো যায়নি। আবার চেষ্টা করুন।'); }
+            }}>{saving ? 'সরানো হচ্ছে…' : 'রিল সরান'}</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
