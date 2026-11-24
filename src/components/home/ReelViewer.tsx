@@ -1,4 +1,4 @@
-import { useRef, type PointerEvent } from 'react';
+import { useRef, useState, type PointerEvent } from 'react';
 import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { reelPlayback, type HomeReel } from '@/lib/homeReels';
 
@@ -11,6 +11,7 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
   const start = useRef<{ id: number; x: number; y: number } | null>(null);
   const swiped = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [unlockedReel, setUnlockedReel] = useState<string | null>(null);
   const player = reelPlayback(reel.source, reel.url);
   if (!player) return null;
 
@@ -28,6 +29,7 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
     start.current = null;
     if (multiple && Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) {
       swiped.current = true;
+      setUnlockedReel(null);
       navigate(dx < 0 ? 1 : -1);
     }
   };
@@ -54,6 +56,7 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
       onKeyDown={event => {
         if (!multiple || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
         event.preventDefault();
+        setUnlockedReel(null);
         navigate(event.key === 'ArrowLeft' ? -1 : 1);
       }}>
       <DialogTitle className="sr-only">{reel.title}</DialogTitle>
@@ -68,9 +71,17 @@ export default function ReelViewer({ reel, multiple, navigate, english }: {
         {player.kind === 'embed' && <>
           <iframe key={reel.id} src={player.url} title={reel.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
             allowFullScreen referrerPolicy="strict-origin-when-cross-origin" className="h-full w-full" />
-          {multiple && <>
-            <span aria-hidden="true" className="absolute inset-y-0 left-0 w-6" />
-            <span aria-hidden="true" className="absolute inset-y-0 right-0 w-6" />
+          {multiple && unlockedReel !== reel.id && (
+            <button type="button" aria-label={english ? 'Enable video controls' : 'ভিডিও নিয়ন্ত্রণ চালু করুন'}
+              className="absolute inset-0 cursor-grab touch-pan-y focus-visible:outline focus-visible:-outline-offset-2"
+              onClick={event => {
+                if (!swiped.current || event.detail === 0) setUnlockedReel(reel.id);
+                swiped.current = false;
+              }} />
+          )}
+          {multiple && unlockedReel === reel.id && <>
+            <span aria-hidden="true" className="absolute inset-y-0 left-0 w-8" />
+            <span aria-hidden="true" className="absolute inset-y-0 right-0 w-8" />
           </>}
         </>}
         {player.kind === 'external' && (
