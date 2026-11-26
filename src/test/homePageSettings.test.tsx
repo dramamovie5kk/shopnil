@@ -1,13 +1,36 @@
 import { useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import HomePageSettings from '@/components/admin/HomePageSettings';
 import { homePageDefaults, homeSectionEnabled, homeNumber, homeColor } from '@/lib/homePageSettings';
+vi.mock('@/hooks/useProducts', () => ({
+  useCategories: () => ({
+    data: [
+      { id: 'a', slug: 'mosquito-nets', name_bn: 'মশারি' },
+      { id: 'b', slug: 'baby-nets', name_bn: 'শিশুর মশারি', parent_id: 'a' },
+    ],
+  }),
+}));
 afterEach(cleanup);
 describe('home page settings',()=>{
   it('keeps existing sections visible and understands previous saved toggle values',()=>{
     expect(homeSectionEnabled('true')).toBe(true);expect(homeSectionEnabled('')).toBe(true);
     expect(homeSectionEnabled('false')).toBe(false);expect(homeSectionEnabled('0')).toBe(false);
+  });
+  it('lists the live categories in all six product sections and keeps the extra sections off by default', () => {
+    const onChange = vi.fn();
+    render(<HomePageSettings values={homePageDefaults} onChange={onChange} />);
+    const pickers = screen.getAllByRole('combobox');
+    expect(pickers).toHaveLength(6);
+    for (const picker of pickers) {
+      expect(picker.querySelector('option[value="mosquito-nets"]')).toHaveTextContent('মশারি');
+      expect(picker.querySelector('option[value="baby-nets"]')).toHaveTextContent('শিশুর মশারি');
+    }
+    const toggle = screen.getByRole('switch', { name: 'সেকশন ৬ দেখাবে' });
+    expect(toggle).not.toBeChecked();
+    fireEvent.click(toggle);
+    fireEvent.change(pickers[5], { target: { value: 'baby-nets' } });
+    expect(onChange.mock.calls).toEqual([['home_products_6_enabled', 'true'], ['home_products_6_category', 'baby-nets']]);
   });
   it('bounds grid counts and rejects unsafe colors',()=>{
     expect(homeNumber('500',1,60,12)).toBe(60);expect(homeNumber('bad',1,60,12)).toBe(12);

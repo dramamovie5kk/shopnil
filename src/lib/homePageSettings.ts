@@ -1,4 +1,12 @@
+export const extraHomeProductSlots = [2, 3, 4, 5, 6] as const;
+const extraProductDefaults = Object.fromEntries(extraHomeProductSlots.flatMap(slot => [
+  [`home_products_${slot}_enabled`, 'false'],
+  [`home_products_${slot}_category`, ''],
+])) as Record<`home_products_${typeof extraHomeProductSlots[number]}_${'enabled' | 'category'}`, string>;
+
 export const homePageDefaults = {
+  ...extraProductDefaults,
+  home_products_category: '',
   home_products_enabled:'true',home_products_title:'আমাদের প্রোডাক্ট',home_products_subtitle:'',home_products_button_text:'বিস্তারিত দেখুন',home_shop_button_text:'সব প্রোডাক্ট দেখুন',
   home_products_limit:'12',home_products_columns_mobile:'2',home_products_columns_desktop:'4',home_products_title_color:'',home_products_bg_color:'',home_products_button_bg_color:'',home_products_button_text_color:'',
   category_section_enabled:'true',category_section_title:'টপ ক্যাটাগরি',category_section_title_color:'',category_section_button_text:'সব দেখুন',category_section_button_text_color:'',category_section_button_bg_color:'',
