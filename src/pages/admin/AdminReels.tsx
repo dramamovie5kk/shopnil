@@ -29,6 +29,8 @@ function ReelEditor({ original, onSave, onClose, saving }: {
   const [draft, setDraft] = useState<Draft>(() => original || { id: crypto.randomUUID(), title: '', source: '', url: '', cover: '' });
   const fileInput = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const coverInput = useRef<HTMLInputElement>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const busy = saving || uploading;
@@ -40,9 +42,10 @@ function ReelEditor({ original, onSave, onClose, saving }: {
   const save = async () => {
     if (busy) return;
     const { source, title, productSlug } = draft;
-    const cover = reelCover(draft.cover);
+    let cover = reelCover(draft.cover);
+    const coverExtension = coverFile?.name.match(/\.(jpe?g|png|webp|avif)$/i)?.[1].toLowerCase();
     let url = draft.url.trim();
-    if (!title.trim() || !source || (!file && !reelPlayback(source, url)) || (draft.cover.trim() && !cover)) {
+    if (!title.trim() || !source || (!file && !reelPlayback(source, url)) || (!coverFile && draft.cover.trim() && !cover)) {
       setError('শিরোনাম, নির্বাচিত উৎসের ভিডিও এবং দেওয়া থাকলে কভার লিংক যাচাই করুন।');
       return;
     }
@@ -52,6 +55,10 @@ function ReelEditor({ original, onSave, onClose, saving }: {
     }
     if (file && (!/\.mp4$/i.test(file.name) || !file.size || file.size > 20 * 1024 * 1024)) {
       setError('সর্বোচ্চ ২০ MB আকারের MP4 ফাইল বেছে নিন।');
+      return;
+    }
+    if (coverFile && (!coverExtension || !coverFile.size || coverFile.size > 10 * 1024 * 1024)) {
+      setError('সর্বোচ্চ ১০ MB আকারের JPG, PNG, WebP বা AVIF কভার ছবি বেছে নিন।');
       return;
     }
     setError('');
@@ -65,6 +72,16 @@ function ReelEditor({ original, onSave, onClose, saving }: {
         setFile(null);
         if (fileInput.current) fileInput.current.value = '';
         update({ url });
+      }
+      if (coverFile) {
+        setUploading(true);
+        const path = `reels/covers/${crypto.randomUUID()}.${coverExtension}`;
+        const { error: uploadError } = await api.storage.from('products').upload(path, coverFile);
+        if (uploadError) throw new Error('কভার ছবি আপলোড হয়নি। ছবিটি যাচাই করে আবার চেষ্টা করুন।');
+        cover = '/api/media/products/' + path;
+        setCoverFile(null);
+        if (coverInput.current) coverInput.current.value = '';
+        update({ cover });
       }
       await onSave({ ...draft, source, title: title.trim(), url, cover, productSlug });
     } catch (failure) {
@@ -116,8 +133,15 @@ function ReelEditor({ original, onSave, onClose, saving }: {
             {isError && <p role="alert" className="text-xs text-destructive">পণ্যের তালিকা লোড হয়নি।</p>}
           </div>
           <div className="space-y-1">
-            <Label htmlFor="reel-cover">কভার ছবির লিংক (ঐচ্ছিক)</Label>
-            <Input id="reel-cover" dir="ltr" inputMode="url" maxLength={2000} value={draft.cover} onChange={event => update({ cover: event.target.value })} />
+            <Label htmlFor="reel-cover-file">কভার ছবি আপলোড (ঐচ্ছিক)</Label>
+            <Input id="reel-cover-file" ref={coverInput} type="file" accept=".jpg,.jpeg,.png,.webp,.avif"
+              onChange={event => { setCoverFile(event.target.files?.[0] || null); setError(''); }} />
+            <p className="text-xs text-muted-foreground">JPG, PNG, WebP বা AVIF · সর্বোচ্চ ১০ MB</p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="reel-cover">অথবা কভার ছবির লিংক</Label>
+            <Input id="reel-cover" dir="ltr" inputMode="url" maxLength={2000} value={draft.cover} disabled={!!coverFile}
+              onChange={event => update({ cover: event.target.value })} />
           </div>
         </fieldset>
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
